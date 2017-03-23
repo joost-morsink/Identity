@@ -2,7 +2,7 @@
 
 namespace Biz.Morsink.Identity
 {
-    public class Class1
+    public interface IIdentity
     {
     }
 }
