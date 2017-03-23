@@ -142,16 +142,13 @@ This leads us to divide the information in an identity value in:
   These component values are used to identify the system the entities belong to.
   Routing can be based on these values, and these values may be stripped for consumption in a local system after routing.
 
-## References
+For multi-ary identity values we will define the following two terms:
+> **Definition:** The parent of an identity value of T is an identity value of U, where the arity of U is one less than the arity of T. 
+> The identity value of T also denotes the identity value of U.
+ 
+> **Definition:** The head component value of an identity value of T with parent identity value of U is the component value that is not contained in the indentity value of U.
 
-### Intrinsic component values
-When an identity value is multi-ary it also contains multiple identity values (for other types).
-For instance for a 3-ary identity value `T(x,y,z)`, there exists some type U for which `T(x,y,z)` also denotes `U(x,y)`.
-The relationship between `T` and `U` is defined by the domain model.
-The same holds for a relationship between `U` and some `V` for which `U(x,y)` also denotes `V(x)`.
-Transitively `T(x,y,z)` also denotes `V(x)`
-
-We will define the head component value and the parent as follows:
+What this means can be seen in the following table:
 
 | Identity value | Head component value | Parent identity value |
 | -------------- | -------------------- | --------------------- |
@@ -163,6 +160,36 @@ At the position of the question mark lies an important mathematical principle.
 The unit identity, which denotes no object of any type, is needed for mathematical closure.
 It is the only identity value with arity 0.
 
+```csharp
+interface IMultiaryIdentity<T, P> : IIdentity<T>
+    where P : IIdentity
+{
+    P ParentIdentity { get; }
+    object ComponentValue { get; }
+}
+```
+
+Using this definition we can define the following multiary identity value interfaces:
+
+```csharp
+interface IIdentity<T, U> 
+    : IMultiaryIdentity<U, IIdentity<T>> 
+{ }
+interface IIdentity<T, U, V>
+    : IMultiaryIdentity<V, IIdentity<T, U>>
+{ }
+// et cetera.
+```
+
+## References {#refs}
+
+### Intrinsic component values
+When an identity value is multi-ary it also contains multiple identity values (for other types).
+For instance for a 3-ary identity value `T(x,y,z)`, there exists some type U for which `T(x,y,z)` also denotes `U(x,y)`.
+The relationship between `T` and `U` is defined by the domain model.
+The same holds for a relationship between `U` and some `V` for which `U(x,y)` also denotes `V(x)`.
+Transitively `T(x,y,z)` also denotes `V(x)`
+
 Now the identity value is said to be a _reference_ for `T`, `U` and `V`. 
 This is expressed by the following interface:
 
@@ -173,6 +200,43 @@ interface IIdentityReference<T>
 }
 ```
 
+This interface can be applied to all the IIdentity interfaces:
+```csharp
+interface IIdentity<T> 
+    : IIdentityReference<T>
+{ 
+    // Specification omitted.
+}
+interface IIdentity<T, U> 
+    : IMultiaryIdentity<U, IIdentity<T>>
+    , IIdentityReference<T>
+    , IIdentityReference<U> 
+{ }
+interface IIdentity<T, U, V>
+    : IMultiaryIdentity<V, IIdentity<T, U>>
+    , IIdentityReference<T>
+    , IIdentityReference<U>
+    , IIdentityReference<V>
+{ }
+// et cetera.
+```
+
 ### Infrastructural component values
+Infrastructural or non-intrinsic component values are not part of the identity value within the domain model. The `Provider` property is some indication of who is the current owner of the identity value, but not necessarily where it can be found.
+
+When a service has multiple locations to possibly find an entity, a system identifier might be necessary to determine where to look for the entity. 
+It depends on whether the identity domains overlap or not.
+
+Given a domain class Person with unary identity value, and a service layer with backends A and B.
+A Person can either be registered in A or in B. 
+The identity value can be expressed as a unary string starting with `"A"` or starting with `"B"`.
+Based on this prefix the identity provider in the service layer can determine how to route the request.
+For consumers of the service the prefix is meaningless, but the prefix is part of the intrinsic identity.
+The service layer is able to distill this information from the identity value, allowing for a _local_ identity part in a system with some identifier (A or B). 
+This effectively alters the arity from 1 to 2, routing the identity value resolves it back to 1, which is then eligible for consumption in the backend layer.
+
+When the responsibility of systems is properly segregated, these kinds of 'tricks' are of course not necessary.
 
 ### Self references
+This section is deliberately left blank, because it is not known at this time how to model these kinds of references. 
+This placeholder functions as a reminder.
