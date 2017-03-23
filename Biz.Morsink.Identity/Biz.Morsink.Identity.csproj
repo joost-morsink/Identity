@@ -27,5 +27,8 @@
   <PropertyGroup Condition="$(Configuration) == 'Debug'">
     <VersionSuffix>a000debug</VersionSuffix>
   </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Biz.Morsink.DataConvert" Version="0.1.0-beta001" />
+  </ItemGroup>
 
 </Project>
