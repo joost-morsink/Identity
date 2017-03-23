@@ -164,7 +164,7 @@ It is the only identity value with arity 0.
 interface IMultiaryIdentity<T, P> : IIdentity<T>
     where P : IIdentity
 {
-    P ParentIdentity { get; }
+    P Parent { get; }
     object ComponentValue { get; }
 }
 ```
@@ -191,35 +191,18 @@ The same holds for a relationship between `U` and some `V` for which `U(x,y)` al
 Transitively `T(x,y,z)` also denotes `V(x)`
 
 Now the identity value is said to be a _reference_ for `T`, `U` and `V`. 
-This is expressed by the following interface:
+This is expressed by the following interface part:
 
 ```csharp
-interface IIdentityReference<T>
+interface IIdentity
 {
-    IIdentity<T> Identity;
+    // ...
+    IEnumerable<IIdentity> Identities;
 }
 ```
 
-This interface can be applied to all the IIdentity interfaces:
-```csharp
-interface IIdentity<T> 
-    : IIdentityReference<T>
-{ 
-    // Specification omitted.
-}
-interface IIdentity<T, U> 
-    : IMultiaryIdentity<U, IIdentity<T>>
-    , IIdentityReference<T>
-    , IIdentityReference<U> 
-{ }
-interface IIdentity<T, U, V>
-    : IMultiaryIdentity<V, IIdentity<T, U>>
-    , IIdentityReference<T>
-    , IIdentityReference<U>
-    , IIdentityReference<V>
-{ }
-// et cetera.
-```
+It is of course not possible to implement a generic reference interface multiple times because of error message CS0695. 
+We have to work with the limits of the language and platform here.
 
 ### Infrastructural component values
 Infrastructural or non-intrinsic component values are not part of the identity value within the domain model. The `Provider` property is some indication of who is the current owner of the identity value, but not necessarily where it can be found.
