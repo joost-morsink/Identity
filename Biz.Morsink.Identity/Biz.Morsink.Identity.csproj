@@ -29,6 +29,7 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Biz.Morsink.DataConvert" Version="0.1.0-beta001" />
+    <PackageReference Include="System.ValueTuple" Version="4.3.0" />
   </ItemGroup>
 
 </Project>

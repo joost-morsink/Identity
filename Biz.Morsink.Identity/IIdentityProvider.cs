@@ -5,9 +5,9 @@ using System.Text;
 
 namespace Biz.Morsink.Identity
 {
-    public interface IIdentityProvider
+    public interface IIdentityProvider : IEqualityComparer<IIdentity>
     {
         IIdentity Translate(IIdentity id);
-        IDataConverter Converter { get; }
+        IDataConverter GetConverter(Type t, bool incoming);
     }
 }
