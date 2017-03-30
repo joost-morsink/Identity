@@ -1,7 +1,7 @@
 # Overview
-In domain driven design a very important type is the _entity_.
+In domain driven design a very important type of object is the _entity_.
 An _entity_ can be uniquely identified by some value. 
-We call the attribute/property that identifies this entity a primary key, and its value we will call an _identity value_.
+The attribute/property that identifies some entity is called a primary key, and its value we will call an _identity value_.
 Often the type of this value depends partly on the domain model (domain key), partly on some system that stores the entity (technical key).
 
 ## Identity Values {#idval}
@@ -39,7 +39,7 @@ Some notational convention will prove to be convenient:
 
 ## Identity Providers {#idprov}
 An Identity Provider is an object that produces identity values for certain types. 
-It is responsible for providing enough information for the context which it is used in.
+It is responsible for providing enough information for the context in which it is used.
 Part of an identity value is knowing where it came from, so we'll extend the minimal interface:
 
 ```csharp
@@ -76,7 +76,7 @@ class Person
 
 Let Person be an SQL table storing the information in these objects.
 Let it contain some integer (identity) column for a primary key.
-It being an integer value is not relevant for the domain model, only it being _some_ value.
+The fact that the database stores this column as an integer value is not relevant for the domain model, just that it's _some_ value.
 It is the Identity Provider's responsibility to use the actual value to retrieve the object from the database, or to create an identity value based on the database value.
 
 Let there be some Web API that exposes this table to the world. 
@@ -94,19 +94,31 @@ When the identity value is passed to the storage layer's Identity Provider it wi
 The storage layer can then determine it will need to query the database:
 
 ```sql
-select [Id], [FirstName], [LastName], [BirthDate] from [Person]
+select [Id], [FirstName], [LastName], [BirthDate] from [Person] where [Id] = 1
 ```
 
 This retrieves a row with type `(int, string, string, DateTime)`, which needs to be converted by some ORM layer to an instance of the `Person` class.
 The int will be converted to a `Person(1)` by the storage layer's Identity Provider. 
 After the `Person` instance is passed to the Web API, the identity value is converted back into `Object("/api/person/1")`. 
-When the Web API serializes the object, the id property will contain an URI pointing to the location the object was retrieved from.
+When the Web API serializes the object, the id property will contain a URI pointing to the location the object was retrieved from:
+
+```json
+{
+    "id": "http://api.morsink.biz/api/person/1",
+    "firstName": "Joost",
+    "lastName": "Morsink"
+    ...
+}
+```
+
+The Web API identity provider is responsible for knowing where it is hosted and deriving a base URI.
+This base URI is used in conjunction with the identity value to create a full URI. 
 
 Conversion between strings and integers is a well understood domain.
 
 ## Arity {#arity}
 An entity may have a multi-ary identity value, because of multiple reasons:
-* The storage lauyer may require it.
+* The storage layer may require it.
 * The domain layer may define it.
 * The same type of entity may be stored in multiple different systems. 
 
@@ -127,18 +139,19 @@ Likewise the `T("1-2")` can be transformed back to `T("1","2")` if the 'separato
 From there `T("1","2")` is easily converted to `T(1,2)`.
 Of course the problem arises that Identity Providers on both sides might need to know about this separator. 
 
-By using the `Biz.Morsink.DataConvert` library, a `IDataConverter` can be defined per Identity Provider (or even per defined type within the Identity Provider). 
-When converting an identity value, both the `IDataConverter`s can be tried.  
+By using the `Biz.Morsink.DataConvert` library, two `IDataConverter`s can be defined per Identity Provider (or even per defined type within the Identity Provider). 
+One should be responsible for incoming identity values, and one for outgoing identity values.
+When converting an identity value, both the `IDataConverter`s can be tried. 
 
 Arity 3 adds another layer of complexity when it is split in two, it adds the question whether to split it 2-1 or 1-2.
 In other words, it is quite straightforward to convert from `T(1,2,3)` to `T("1-2-3")` and back, but where do `T("1-2","3")` and `T("1","2-3")` fit in?
-One can only imagine it gets exponentially more complex as the arity gets higher.
+One can imagine it gets exponentially more complex as the arity gets higher.
 
 This leads us to divide the information in an identity value in:
 * Inner domain component values, contributing to the _intrinsic_ arity.
   These component values have identifying meaning within the domain and within the context they are infrastructurally placed.
-  One could say these are _local_ indentity values.
-* Infrastructural component values, contributing to the _total_ arity.
+  One could say these are _local_ identity values.
+* Infrastructural component values, contributing only to the _total_ arity.
   These component values are used to identify the system the entities belong to.
   Routing can be based on these values, and these values may be stripped for consumption in a local system after routing.
 
@@ -210,15 +223,16 @@ Infrastructural or non-intrinsic component values are not part of the identity v
 When a service has multiple locations to possibly find an entity, a system identifier might be necessary to determine where to look for the entity. 
 It depends on whether the identity domains overlap or not.
 
-Given a domain class Person with unary identity value, and a service layer with backends A and B.
-A Person can either be registered in A or in B. 
+Given a domain class `Person` with unary identity value, and a service layer with backends A and B.
+Given a `Person` can either be registered in backend system A or in backend system B. 
 The identity value can be expressed as a unary string starting with `"A"` or starting with `"B"`.
 Based on this prefix the identity provider in the service layer can determine how to route the request.
-For consumers of the service the prefix is meaningless, but the prefix is part of the intrinsic identity.
+For consumers of the service the prefix is meaningless, but the prefix _is_ part of the intrinsic identity.
 The service layer is able to distill this information from the identity value, allowing for a _local_ identity part in a system with some identifier (A or B). 
 This effectively alters the arity from 1 to 2, routing the identity value resolves it back to 1, which is then eligible for consumption in the backend layer.
 
 When the responsibility of systems is properly segregated, these kinds of 'tricks' are of course not necessary.
+However, in practice, when integrating with legacy systems or when migrating between old and new versions of systems they can prove to be very useful tricks.
 
 ### Self references
 This section is deliberately left blank, because it is not known at this time how to model these kinds of references. 
