@@ -9,5 +9,7 @@ namespace Biz.Morsink.Identity
     {
         IIdentity Translate(IIdentity id);
         IDataConverter GetConverter(Type t, bool incoming);
+        IIdentity Create(Type forType, object value);
+        IIdentity<T> Create<T>(object value);
     }
 }

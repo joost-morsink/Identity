@@ -6,7 +6,7 @@ namespace Biz.Morsink.Identity.Test
     [TestClass]
     public class UnitTest1
     {
-        class IdProvider : AbstractIdentityProvider
+        public class IdProvider : AbstractIdentityProvider
         {
             public static IdProvider Instance { get; } = new IdProvider();
 
@@ -18,10 +18,13 @@ namespace Biz.Morsink.Identity.Test
                 else
                     return null;
             }
-            
+            public IIdentity<Person> PersonId(object value)
+            {
+                return this.Builder<Person>().Create(DataConverter.Default.Convert(value).To<int>());
+            }
         }
 
-        class Person
+        public class Person
         {
             public IIdentity<Person> Id { get; set; }
             public string Name { get; set; }
@@ -30,8 +33,8 @@ namespace Biz.Morsink.Identity.Test
         [TestMethod]
         public void TestMethod1()
         {
-            var p = new Person { Id = IdProvider.Instance.Builder<Person>().Create(1), Name = "Joost", Age = 37 };
-
+            var p = new Person { Id = IdProvider.Instance.Create<Person>(1), Name = "Joost", Age = 37 };
+            Assert.AreEqual(1, p.Id.ComponentValue);
         }
     }
 }
