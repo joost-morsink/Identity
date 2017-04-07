@@ -52,11 +52,16 @@ interface IIdentity
 interface IIdentityProvider 
 {
     IIdentity Translate(IIdentity id);
+    IIdentity<T> Translate<T>(IIdentity<T> id);
+    IIdentity Create(Type forType, object value);
+    IIdentity<T> Create<T>(object value);
 }
 ```
 
 Every Identity Provider can determine its own way of providing identity values.  
+The `Create` methods provide a way of creating identity values within the context.
 The `Translate` function can be used to translate externally defined identity values to 'this' Identity Provider.
+These two methods are closely related.
 
 
 ### Example

@@ -8,8 +8,9 @@ namespace Biz.Morsink.Identity
     public interface IIdentityProvider : IEqualityComparer<IIdentity>
     {
         IIdentity Translate(IIdentity id);
+        IIdentity<T> Translate<T>(IIdentity<T> id);
         IDataConverter GetConverter(Type t, bool incoming);
-        IIdentity Create(Type forType, object value);
-        IIdentity<T> Create<T>(object value);
+        IIdentity Create<K>(Type forType, K value);
+        IIdentity<T> Create<T, K>(K value);
     }
 }
