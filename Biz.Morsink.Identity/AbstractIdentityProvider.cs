@@ -10,8 +10,8 @@ namespace Biz.Morsink.Identity
     public class AbstractIdentityProvider : IIdentityProvider
     {
 
-        private Dictionary<Type, IValueToIdentity> _idCreators;
-        private Dictionary<Type, IValueToIdentity> idCreators => _idCreators = _idCreators ??
+        private Dictionary<Type, IIdentityCreator> _idCreators;
+        private Dictionary<Type, IIdentityCreator> idCreators => _idCreators = _idCreators ??
             (from mi in this.GetType().GetTypeInfo().DeclaredMethods
              where mi.ReturnType.GenericTypeArguments.Length == 1 && mi.ReturnType.GetGenericTypeDefinition() == typeof(IIdentity<>)
                && mi.GetGenericArguments().Length == 1
@@ -19,9 +19,23 @@ namespace Biz.Morsink.Identity
              select new
              {
                  Key = mi.ReturnType.GenericTypeArguments[0],
-                 Value = (IValueToIdentity)Activator.CreateInstance(
-                     typeof(ValueToIdentity<>).MakeGenericType(mi.ReturnType.GenericTypeArguments[0]), this, mi)
-             }).ToDictionary(x => x.Key, x => x.Value);
+                 Value = (IIdentityCreator)Activator.CreateInstance(
+                     typeof(MethodInfoIdentityCreator<>).MakeGenericType(mi.ReturnType.GenericTypeArguments[0]), this, mi)
+             }).Concat(
+                from mi in this.GetType().GetTypeInfo().DeclaredMethods
+                where typeof(IIdentity).GetTypeInfo().IsAssignableFrom(mi.ReturnType.GetTypeInfo())
+                  && mi.GetGenericArguments().Length == 0
+                from itfs in mi.ReturnType.GetTypeInfo().ImplementedInterfaces.Concat(new[] { mi.ReturnType })
+                let iti = itfs.GetTypeInfo()
+                where iti.IsInterface && iti.GenericTypeArguments.Length == 1 && iti.GetGenericTypeDefinition() == typeof(IIdentity<>)
+                let idType = iti.GenericTypeArguments[0]
+                select new
+                {
+                    Key = idType,
+                    Value = (IIdentityCreator)Activator.CreateInstance(
+                        typeof(MethodInfoIdentityCreator<>).MakeGenericType(idType), this, mi)
+                }
+              ).ToDictionary(x => x.Key, x => x.Value);
         private Func<object, IIdentity> createFunc(MethodInfo mi)
         {
             var input = Ex.Parameter(typeof(object), "input");
@@ -29,13 +43,13 @@ namespace Biz.Morsink.Identity
             return (Func<object, IIdentity>)lambda.Compile();
         }
 
-        protected IValueToIdentity GetCreator(Type t)
+        protected IIdentityCreator GetCreator(Type t)
         {
             return idCreators.TryGetValue(t, out var creator) ? creator : null;
         }
-        protected IValueToIdentity<T> GetCreator<T>()
+        protected IIdentityCreator<T> GetCreator<T>()
         {
-            return idCreators.TryGetValue(typeof(T), out var creator) ? creator as IValueToIdentity<T> : null;
+            return idCreators.TryGetValue(typeof(T), out var creator) ? creator as IIdentityCreator<T> : null;
         }
 
         public virtual IIdentity Create<K>(Type t, K value)
@@ -51,7 +65,20 @@ namespace Biz.Morsink.Identity
         public virtual bool Equals(IIdentity x, IIdentity y)
             => object.ReferenceEquals(x, y)
             || x.ForType == y.ForType
-                && object.Equals(x.Value, GetConverter(x.ForType, true).GetGeneralConverter(y.Value.GetType(), x.Value.GetType())(y.Value).Result);
+                && (object.ReferenceEquals(x.Value, y.Value)
+                    || x.Provider == y.Provider && object.Equals(x.Value, y.Value)
+                    || x.Value != null
+                        && object.Equals(x.Value, GetConverter(x.ForType, true).GetGeneralConverter(y.Value.GetType(), x.Value.GetType())(y.Value).Result));
+
+
+
+        public virtual bool Equals<T>(IIdentity<T> x, IIdentity<T> y)
+            => object.ReferenceEquals(x, y)
+                || object.ReferenceEquals(x.Value, y.Value)
+                || x.Provider == y.Provider && object.Equals(x.Value, y.Value)
+                || x.Value != null
+                    && object.Equals(x.Value, GetConverter(typeof(T), true).GetGeneralConverter(y.Value.GetType(), x.Value.GetType())(y.Value).Result);
+
 
         public virtual IDataConverter GetConverter(Type t, bool incoming)
             => DataConverter.Default;
