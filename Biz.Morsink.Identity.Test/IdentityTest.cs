@@ -72,7 +72,7 @@ namespace Biz.Morsink.Identity.Test
             Assert.AreNotEqual(42L, CId.Create("42")?.ComponentValue, "Generic creation method should not convert to long");
         }
     }
-    public class IdProvider : AbstractIdentityProvider
+    public class IdProvider : ReflectedIdentityProvider
     {
         public static IdProvider Instance { get; } = new IdProvider();
 
@@ -85,6 +85,7 @@ namespace Biz.Morsink.Identity.Test
         public IIdentity<A> AId(int x)
             => new Identity<A, int>(this, x);
 
+        // This method definition does not satisfy the constraints for identity value creation and will not be used by the generic mechanism.
         public IIdentity BId(int x)
             => new Identity<B, int>(this, x);
 

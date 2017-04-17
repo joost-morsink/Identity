@@ -9,64 +9,22 @@ namespace Biz.Morsink.Identity
 {
     /// <summary>
     /// Base class for identity providers.
-    /// It supports creation of identities by method implementations in the derived class that adhere to one of two method signatures.
-    /// Either the method returns an IIdentity&lt;T&gt; and accepts a generically defined parameter, 
-    /// or it returns some IIdentity implementing type of arity n, and has n method parameters of any type.
+    /// Forwards actual creation of identity values to two methods called 'GetCreator'.
     /// </summary>
-    public class AbstractIdentityProvider : IIdentityProvider
+    public abstract class AbstractIdentityProvider : IIdentityProvider
     {
-        private Dictionary<Type, IIdentityCreator> _idCreators;
-        private Dictionary<Type, IIdentityCreator> idCreators => _idCreators = _idCreators ??
-            // Select all the generic methods.
-            (from mi in this.GetType().GetTypeInfo().DeclaredMethods
-             where mi.ReturnType.GenericTypeArguments.Length == 1 && mi.ReturnType.GetGenericTypeDefinition() == typeof(IIdentity<>)
-               && mi.GetGenericArguments().Length == 1
-               && mi.GetParameters().Length == 1 && mi.GetParameters()[0].ParameterType == mi.GetGenericArguments()[0]
-             select new
-             {
-                 Key = mi.ReturnType.GenericTypeArguments[0],
-                 Value = (IIdentityCreator)Activator.CreateInstance(
-                     typeof(MethodInfoIdentityCreator<>).MakeGenericType(mi.ReturnType.GenericTypeArguments[0]), this, mi)
-             }).Concat(
-             // Select all the specific methods.
-                from mi in this.GetType().GetTypeInfo().DeclaredMethods
-                where typeof(IIdentity).GetTypeInfo().IsAssignableFrom(mi.ReturnType.GetTypeInfo())
-                  && mi.GetGenericArguments().Length == 0
-                from itfs in mi.ReturnType.GetTypeInfo().ImplementedInterfaces.Concat(new[] { mi.ReturnType })
-                let iti = itfs.GetTypeInfo()
-                where iti.IsInterface && iti.GenericTypeArguments.Length == 1 && iti.GetGenericTypeDefinition() == typeof(IIdentity<>)
-                let idType = iti.GenericTypeArguments[0]
-                select new
-                {
-                    Key = idType,
-                    Value = (IIdentityCreator)Activator.CreateInstance(
-                        typeof(MethodInfoIdentityCreator<>).MakeGenericType(idType), this, mi)
-                }
-              ).ToDictionary(x => x.Key, x => x.Value);
-        private Func<object, IIdentity> createFunc(MethodInfo mi)
-        {
-            var input = Ex.Parameter(typeof(object), "input");
-            var lambda = Ex.Lambda(Ex.Call(Ex.Constant(this), mi, input), input);
-            return (Func<object, IIdentity>)lambda.Compile();
-        }
         /// <summary>
         /// Gets a IIdentityCreator instance for some type.
         /// </summary>
         /// <param name="type">The type to get an IIdentityCreator for.</param>
         /// <returns>An IIdentityCreator for the specified type.</returns>
-        protected IIdentityCreator GetCreator(Type type)
-        {
-            return idCreators.TryGetValue(type, out var creator) ? creator : null;
-        }
+        protected abstract IIdentityCreator GetCreator(Type type);
         /// <summary>
         /// Gets a IIdentityCreator&lt;T&gt; instance for some type.
         /// </summary>
         /// <typeparam name="T">The type to get an IIdentityCreator for.</typeparam>
         /// <returns>An IIdentityCreator for the specified type.</returns>
-        protected IIdentityCreator<T> GetCreator<T>()
-        {
-            return idCreators.TryGetValue(typeof(T), out var creator) ? creator as IIdentityCreator<T> : null;
-        }
+        protected abstract IIdentityCreator<T> GetCreator<T>();
         /// <summary>
         /// Creates an identity value for a certain type of a certain value type.
         /// </summary>
