@@ -46,8 +46,16 @@ Every identity provider should be able to compare two identity values for equali
 ## AbstractIdentityProvider
 A convenient base class for an identity provider is the `AbstractIdentityProvider` class.
 It provides default (overridable) implementations for the whole `IIdentityProvider` interface.
+It delegates actual identity value creation to two protected methods:
+
+```csharp
+IIdentityCreator GetCreator(Type type);
+IIdentityCreator<T> GetCreator<T>();
+```
+
 However it does not do anything useful as-is.
 
+### ReflectedIdentityProvider
 This base class uses reflection to find two kinds of methods on the derived class:
 
 * `IIdentity<T> MethodName<K>(K value)`
@@ -61,7 +69,7 @@ These methods convert underlying values to concrete identity values.
 For instance, a database table 'Person' with autoincrement primary key, may be modeled by the identity provider as follows:
 
 ```csharp
-public class DatabaseIdentityProvider : AbstractIdentityProvider 
+public class DatabaseIdentityProvider : ReflectedIdentityProvider 
 {
     public Identity<Person, int> PersonId(int x)
         => new Identity<Person, int>(this, x);
@@ -71,5 +79,5 @@ public class DatabaseIdentityProvider : AbstractIdentityProvider
 Note that the return type could also have been `IIdentity<Person>`, it depends on what contract the implementor desires.
 The constraint is that a method needs to be present that returns some `IIdentity<Person>` implementing type.
 
-The `AbstractIdentityProvider` default implementation takes care of calls to `Create<Person, K>(K value)` and `Create<K>(Type type, K value` (where `type == typeof(Person)`) , by converting the `K` valued parameter to `int` and passing it to the `PersonId` method.
+The `ReflectedIdentityProvider` default implementation takes care of calls to `Create<Person, K>(K value)` and `Create<K>(Type type, K value` (where `type == typeof(Person)`) , by converting the `K` valued parameter to `int` and passing it to the `PersonId` method.
 The `Translate` methods build on these `Create` methods.
