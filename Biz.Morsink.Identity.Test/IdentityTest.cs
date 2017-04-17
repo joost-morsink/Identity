@@ -20,26 +20,26 @@ namespace Biz.Morsink.Identity.Test
         [TestMethod]
         public void Identity_ComponentValues()
         {
-            Assert.AreEqual(1, person.Id.ComponentValue,"Component value should be equal to the converted value" );
+            Assert.AreEqual(1, person.Id.ComponentValue, "Component value should be equal to the converted value");
             Assert.AreEqual(2, detail.Id.ComponentValue, "Component value should be equal to the converted component value");
         }
         [TestMethod]
         public void Identity_Parents()
-        { 
+        {
             Assert.AreEqual(1, detail.Id.Parent.ComponentValue, "Parent's component value should be equal to the converted component value");
             Assert.AreEqual(1, detail.Id.For<Person>()?.ComponentValue, "Person Identity must be found and have a component value equal to the converted component value");
         }
         [TestMethod]
         public void Identity_Equality()
         {
-            Assert.IsTrue(provider.Equals(person.Id, detail.Id.For<Person>()),"Intrinsic Person identity should be equal to the Person identity" );
+            Assert.IsTrue(provider.Equals(person.Id, detail.Id.For<Person>()), "Intrinsic Person identity should be equal to the Person identity");
             Assert.IsTrue(provider.Equals(detail.Id, provider.Create<Detail, (int, int)>((1, 2))), "Full identity should be equal tot the converted identity using generic method");
             Assert.IsTrue(provider.Equals(detail.Id, provider.DetailId(1, 2)), "Full identity should be equal tot the converted identity using specific method");
         }
         [TestMethod]
         public void Identity_Arity()
         {
-            Assert.AreEqual(2, detail.Id.Arity, "Identity<T,U> should have arity 2" );
+            Assert.AreEqual(2, detail.Id.Arity, "Identity<T,U> should have arity 2");
             Assert.AreEqual(1, person.Id.Arity, "Identity<T> should have arity 1");
         }
         [TestMethod]
@@ -60,13 +60,13 @@ namespace Biz.Morsink.Identity.Test
         {
             Assert.AreEqual(typeof(A), provider.Creator(typeof(A)).Create("42").ForType, "General creation of identities should respect the ForType property");
             Assert.IsNotNull(provider.Creator(typeof(A)).Create("42") as IIdentity<A>, "General creation of identities should yield a strongly typed runtime value");
-            Assert.AreEqual(42, provider.Creator(typeof(A)).Create("42").Value,"General creation of identities should convert value according to the type");
+            Assert.AreEqual(42, provider.Creator(typeof(A)).Create("42").Value, "General creation of identities should convert value according to the type");
         }
         [TestMethod]
         public void Identity_GenericCreator()
         {
             var CId = provider.Creator<C>();
-            Assert.AreEqual(42, CId.Create(42)?.ComponentValue,"Generic creation method should respect the integer type" );
+            Assert.AreEqual(42, CId.Create(42)?.ComponentValue, "Generic creation method should respect the integer type");
             Assert.AreEqual(42L, CId.Create(42L)?.ComponentValue, "Generic creation method should respect the long type");
             Assert.AreEqual(42, CId.Create("42")?.ComponentValue, "Generic creation method should convert to int");
             Assert.AreNotEqual(42L, CId.Create("42")?.ComponentValue, "Generic creation method should not convert to long");
@@ -76,7 +76,7 @@ namespace Biz.Morsink.Identity.Test
     {
         public static IdProvider Instance { get; } = new IdProvider();
 
-        public Identity<Person, int> PersonId(int value) 
+        public Identity<Person, int> PersonId(int value)
             => new Identity<Person, int>(this, value);
 
         public Identity<Person, Detail, int, int> DetailId(int p, int d)
@@ -97,38 +97,6 @@ namespace Biz.Morsink.Identity.Test
                 return new Identity<C, int>(this, v);
             else
                 return null;
-        }
-    }
-
-    public class Person
-    {
-        public IIdentity<Person> Id { get; set; }
-        public string Name { get; set; }
-        public int Age { get; set; }
-    }
-
-    public class Detail
-    {
-        public IIdentity<Person, Detail> Id { get; set; }
-        public string Description { get; set; }
-    }
-    public class A
-    {
-        public IIdentity<A> Id { get; set; }
-    }
-    public class B
-    {
-        public IIdentity<B> Id { get; set; }
-    }
-    public class C
-    {
-        public IIdentity<C> Id { get; set; }
-    }
-    public static class DomainExt
-    {
-        public static IIdentity<Person, Detail> Upgrade(this IIdentity<Detail> id)
-        {
-            return id as IIdentity<Person, Detail> ?? id.Provider.Translate(id) as IIdentity<Person, Detail>;
         }
     }
 }

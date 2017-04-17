@@ -8,3 +8,5 @@ The repository contains:
   * Identity project
   * Identity.Test unit test project
 * This [gitbook](http://www.gitbook.com) containing documentation for the project.
+
+This project has a dependency on the [Biz.Morsink.DataConvert](https://github.com/joost-morsink/DataConvert) library.

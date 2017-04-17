@@ -81,3 +81,16 @@ The constraint is that a method needs to be present that returns some `IIdentity
 
 The `ReflectedIdentityProvider` default implementation takes care of calls to `Create<Person, K>(K value)` and `Create<K>(Type type, K value` (where `type == typeof(Person)`) , by converting the `K` valued parameter to `int` and passing it to the `PersonId` method.
 The `Translate` methods build on these `Create` methods.
+
+### GenericIdentityProvider
+This utility class provides an implementation for `IIdentityProvider` that is able to generate identity values for _any_ type.
+It is parameterized on the underlying type, which is used for _all_ entity types.
+This makes it very easy to use when keytypes of some storage layer are uniform, but it makes it very difficult to use with domain models containing identity value types of different arities. 
+
+All that is necessary to create an identity value with this class is instantiate it and call the Create method:
+```csharp
+new GenericIdentityProvider<int>().Create<Person, int>(42);
+```
+
+The constructor takes an optional `IDataConverter` instance. 
+If nothing or null is passed the `DataConverter.Default` instance is used.

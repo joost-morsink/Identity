@@ -111,6 +111,8 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="GenericIdentityProviderTest.cs" />
+    <Compile Include="HelperClasses.cs" />
     <Compile Include="IdentityTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
