@@ -77,7 +77,7 @@ namespace Biz.Morsink.Identity
         public virtual bool Equals<T>(IIdentity<T> x, IIdentity<T> y)
             => object.ReferenceEquals(x, y)
                 || object.ReferenceEquals(x.Value, y.Value)
-                || x.Provider == y.Provider && object.Equals(x.Value, y.Value)
+                || x.Provider == y.Provider && x.Value != null && object.Equals(x.Value, y.Value)
                 || x.Value != null
                     && object.Equals(x.Value, GetConverter(typeof(T), true).GetGeneralConverter(y.Value.GetType(), x.Value.GetType())(y.Value).Result);
         /// <summary>
