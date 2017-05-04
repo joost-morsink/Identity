@@ -42,6 +42,21 @@ For each type and direction a different instance could be returned.
 
 ### IEqualityComparer<IIdentity>
 Every identity provider should be able to compare two identity values for equality.
+Equality comparison is divided into three categories:
+* Regular value equality. 
+  The most common case, if the underlying values of two identities equal, then so do the identities themselves.
+  Sometimes the right hand side may need to be converted to the type of the left hand side before the values are compared.
+* Null values.
+  Null values are not equal to regular values, but *are* equal to other null values.
+* Late values.
+  Late values are identity values that are yet to be determined by some storage layer. 
+  Late values are not equal to regular values or null values.
+  Late values are also not equal to other late values, unless they are the *same* instance (reference equality).
+  The reason behind this is that two different late identity values should ultimately resolve to two different actual identity values.
+
+Late values should only be used if there is no way to determine an identity value beforehand.
+For instance, an existing SQL database with an auto identity column might need to use late identities.
+However, an SQL database that uses sequences might not need to use late identities.
 
 ## AbstractIdentityProvider
 A convenient base class for an identity provider is the `AbstractIdentityProvider` class.

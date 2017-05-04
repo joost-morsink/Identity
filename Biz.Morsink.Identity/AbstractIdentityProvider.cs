@@ -62,8 +62,7 @@ namespace Biz.Morsink.Identity
             || x.ForType == y.ForType
                 && (object.ReferenceEquals(x.Value, y.Value)
                     || x.Provider == y.Provider && object.Equals(x.Value, y.Value)
-                    || x.Value != null
-                        && object.Equals(x.Value, GetConverter(x.ForType, true).GetGeneralConverter(y.Value.GetType(), x.Value.GetType())(y.Value).Result));
+                    || x.Value != null && object.Equals(x.Value, GetConverter(x.ForType, true).GetGeneralConverter(y.Value.GetType(), x.Value.GetType())(y.Value).Result));
         /// <summary>
         /// Evaluates equality for to IIdentity values.
         /// Assumes the first has this as provider.
@@ -77,9 +76,8 @@ namespace Biz.Morsink.Identity
         public virtual bool Equals<T>(IIdentity<T> x, IIdentity<T> y)
             => object.ReferenceEquals(x, y)
                 || object.ReferenceEquals(x.Value, y.Value)
-                || x.Provider == y.Provider && x.Value != null && object.Equals(x.Value, y.Value)
-                || x.Value != null
-                    && object.Equals(x.Value, GetConverter(typeof(T), true).GetGeneralConverter(y.Value.GetType(), x.Value.GetType())(y.Value).Result);
+                    || x.Provider == y.Provider && object.Equals(x.Value, y.Value)
+                    || x.Value != null && object.Equals(x.Value, GetConverter(typeof(T), true).GetGeneralConverter(y.Value.GetType(), x.Value.GetType())(y.Value).Result);
         /// <summary>
         /// Gets a hashcode for an identity value.
         /// </summary>

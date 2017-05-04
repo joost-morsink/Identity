@@ -31,6 +31,10 @@ namespace Biz.Morsink.Identity.Test
     {
         public IIdentity<C> Id { get; set; }
     }
+    public class D
+    {
+        public IIdentity<D> Id { get; set; }
+    }
     public static class DomainExt
     {
         public static IIdentity<Person, Detail> Upgrade(this IIdentity<Detail> id)

@@ -35,6 +35,8 @@ namespace Biz.Morsink.Identity.Test
             Assert.IsTrue(provider.Equals(person.Id, detail.Id.For<Person>()), "Intrinsic Person identity should be equal to the Person identity");
             Assert.IsTrue(provider.Equals(detail.Id, provider.Create<Detail, (int, int)>((1, 2))), "Full identity should be equal tot the converted identity using generic method");
             Assert.IsTrue(provider.Equals(detail.Id, provider.DetailId(1, 2)), "Full identity should be equal tot the converted identity using specific method");
+            Assert.IsTrue(provider.Equals(provider.DId(null), provider.DId(null)), "Null identity values should be equal");
+            Assert.IsTrue(provider.Equals(null, null), "Null identities should be equal");
         }
         [TestMethod]
         public void Identity_Arity()
@@ -46,7 +48,7 @@ namespace Biz.Morsink.Identity.Test
         public void Identity_Translation()
         {
             var aid = new Identity<A, string>(null, "42");
-            Assert.AreEqual(typeof(int), provider.Translate(aid).ComponentValue.GetType(), "A different-typed identity should be of the providers type after translation");
+            Assert.AreEqual(typeof(int), provider.Translate(aid).ComponentValue.GetType(), "A different-typed identity should be of the provider's type after translation");
             Assert.AreEqual(42, provider.Translate(aid).ComponentValue, "A different-typed identity should be converted during translation");
         }
         [TestMethod]
@@ -98,5 +100,7 @@ namespace Biz.Morsink.Identity.Test
             else
                 return null;
         }
+        public IIdentity<D> DId(string value)
+            => new Identity<D, string>(this, value);
     }
 }
