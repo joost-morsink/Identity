@@ -10,6 +10,9 @@ interface IIdentityProvider : IEqualityComparer<IIdentity>
 {
     IIdentity Create<K>(Type forType, K value);
     IIdentity<T> Create<T, K>(K value);
+    bool SupportsNewIdentities { get; }
+    IIdentity New(Type forType, object entity);
+    IIdentity<T> New<T>(T entity);
     IIdentity Translate(IIdentity id);
     IIdentity<T> Translate<T>(IIdentity<T> id);
     IDataConverter GetConverter(Type t, bool incoming);
@@ -29,6 +32,15 @@ For instance, in SQL, an auto increment integer primary key may convert the valu
 If the type is known at compile time, the method can return an `IIdentity<T>`, otherwise a general `IIdentity` is returned.
 It is still required to have the type known at runtime to construct the identity value.
 While the static type is `IIdentity`, at runtime there still it should always be an instance of `IIdentity<T>` where `typeof(T)` equals the parameter `forType`.
+
+### New
+The new methods create new identity values to use for new entities.
+It is up to the provider to determine whether and how to construct such values.
+The `SupportsNewIdentities` should indicate whether the identity provider is able to produce new identity values.
+A storage layer must be able to provide new identity values for new entities, but an API layer should probably let the backend storage layer handle the generation of new identities.
+
+When an entity has an identity value that has more semantics than just being a key, the key is often determined by the domain layer. 
+In this case the `New` functions are not necessary to determine new identity values, although an implementation can be provided by using the `entity` parameter.
 
 ### Translate
 The translate methods are able to convert an identity value that belongs to another identity provider to one that belongs to itself.

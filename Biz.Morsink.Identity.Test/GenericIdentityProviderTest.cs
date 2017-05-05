@@ -27,14 +27,14 @@ namespace Biz.Morsink.Identity.Test
         [TestMethod]
         public void GenericIp_HappyTranslate()
         {
-            Assert.AreEqual("42", provider.Translate(IdProvider.Instance.Creator<A>().Create(42)).Value);
-            Assert.AreNotEqual(provider, IdProvider.Instance.Creator<A>().Create(42).Provider);
-            Assert.AreEqual(provider, provider.Translate(IdProvider.Instance.Creator<A>().Create(42)).Provider);
+            Assert.AreEqual("42", provider.Translate(TestIdProvider.Instance.Creator<A>().Create(42)).Value);
+            Assert.AreNotEqual(provider, TestIdProvider.Instance.Creator<A>().Create(42).Provider);
+            Assert.AreEqual(provider, provider.Translate(TestIdProvider.Instance.Creator<A>().Create(42)).Provider);
         }
         [TestMethod]
         public void GenericIp_HappyEquality()
         {
-            Assert.IsTrue(provider.Equals(provider.Creator<A>().Create("42"), IdProvider.Instance.AId(42)));
+            Assert.IsTrue(provider.Equals(provider.Creator<A>().Create("42"), TestIdProvider.Instance.AId(42)));
         }
     }
 }

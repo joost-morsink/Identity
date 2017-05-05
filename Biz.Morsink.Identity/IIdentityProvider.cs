@@ -49,5 +49,25 @@ namespace Biz.Morsink.Identity
         /// <param name="value">The underlying value.</param>
         /// <returns>If the provider is able to construct an identity value for the specified parameters, the identity value. Null otherwise.</returns>
         IIdentity<T> Create<T, K>(K value);
+        /// <summary>
+        /// Indicates whether this identity provider supports the generation of new identity values for new entities.
+        /// </summary>
+        bool SupportsNewIdentities { get; }
+        /// <summary>
+        /// Creates a new identity value for some entity of some type.
+        /// </summary>
+        /// <param name="forType">The type of entity the identity value is created for.</param>
+        /// <param name="entity">The entity the identity value is created for.</param>
+        /// <returns>A new and unique identity value for the entity.</returns>
+        /// <exception cref="InvalidOperationException">When SupportsNewIdentities is false.</exception>
+        IIdentity New(Type forType, object entity);
+        /// <summary>
+        /// Creates a new identity value for some entity of some type.
+        /// </summary>
+        /// <typeparam name="T">The type of entity the identity value is created for.</typeparam>
+        /// <param name="entity">The entity the identity value is created for.</param>
+        /// <returns>A new and unique identity value for the entity.</returns>
+        /// <exception cref="InvalidOperationException">When SupportsNewIdentities is false.</exception>
+        IIdentity<T> New<T>(T entity);
     }
 }

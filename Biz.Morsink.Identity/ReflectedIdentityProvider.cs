@@ -35,6 +35,7 @@ namespace Biz.Morsink.Identity
                 let iti = itfs.GetTypeInfo()
                 where iti.IsInterface && iti.GenericTypeArguments.Length == 1 && iti.GetGenericTypeDefinition() == typeof(IIdentity<>)
                 let idType = iti.GenericTypeArguments[0]
+                where mi.GetParameters().Length > 0 && mi.GetParameters()[0].ParameterType != idType
                 select new
                 {
                     Key = idType,
@@ -42,6 +43,20 @@ namespace Biz.Morsink.Identity
                         typeof(MethodInfoIdentityCreator<>).MakeGenericType(idType), this, mi)
                 }
               ).ToDictionary(x => x.Key, x => x.Value);
+        private Dictionary<Type, IIdentityGenerator> _idGenerators;
+        private Dictionary<Type, IIdentityGenerator> idGenerators => _idGenerators = _idGenerators ??
+            (from mi in this.GetType().GetTypeInfo().DeclaredMethods
+             where mi.ReturnType.GenericTypeArguments.Length == 1 && mi.ReturnType.GetGenericTypeDefinition() == typeof(IIdentity<>)
+             let eType = mi.ReturnType.GenericTypeArguments[0]
+             where mi.GetGenericArguments().Length == 0
+               && mi.GetParameters().Length == 1 && mi.GetParameters()[0].ParameterType == eType
+             select new
+             {
+                 Key = eType,
+                 Value = (IIdentityGenerator)Activator.CreateInstance(
+                     typeof(MethodInfoIdentityGenerator<>).MakeGenericType(eType), this, mi)
+             }).ToDictionary(x => x.Key, x => x.Value);
+
         private Func<object, IIdentity> createFunc(MethodInfo mi)
         {
             var input = Ex.Parameter(typeof(object), "input");
@@ -65,6 +80,15 @@ namespace Biz.Morsink.Identity
         protected override IIdentityCreator<T> GetCreator<T>()
         {
             return idCreators.TryGetValue(typeof(T), out var creator) ? creator as IIdentityCreator<T> : null;
+        }
+        public override bool SupportsNewIdentities => idGenerators.Count > 0;
+        protected override IIdentityGenerator GetGenerator(Type type)
+        {
+            return idGenerators.TryGetValue(type, out var res) ? res : null;
+        }
+        protected override IIdentityGenerator<T> GetGenerator<T>()
+        {
+            return idGenerators.TryGetValue(typeof(T), out var res) ? (IIdentityGenerator<T>)res : null;
         }
     }
 }

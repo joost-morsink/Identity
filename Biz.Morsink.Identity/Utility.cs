@@ -31,5 +31,12 @@ namespace Biz.Morsink.Identity
         /// <returns>An identity value if one could be found for T, null otherwise.</returns>
         public static IIdentity<T> For<T>(this IIdentity id)
             => id.Identities.OfType<IIdentity<T>>().FirstOrDefault();
+
+        public static IdentityGenerator<T> Generator<T>(this IIdentityProvider provider)
+            => new IdentityGenerator<T>(provider);
+
+        public static IdentityGenerator Generator(this IIdentityProvider provider, Type type)
+            => new IdentityGenerator(provider, type);
+
     }
 }

@@ -25,6 +25,16 @@ namespace Biz.Morsink.Identity
         /// <typeparam name="T">The type to get an IIdentityCreator for.</typeparam>
         /// <returns>An IIdentityCreator for the specified type.</returns>
         protected abstract IIdentityCreator<T> GetCreator<T>();
+
+
+        protected virtual IIdentityGenerator GetGenerator(Type type)
+        {
+            throw new InvalidOperationException();
+        }
+        protected virtual IIdentityGenerator<T> GetGenerator<T>()
+        {
+            throw new InvalidOperationException();
+        }
         /// <summary>
         /// Creates an identity value for a certain type of a certain value type.
         /// </summary>
@@ -49,6 +59,18 @@ namespace Biz.Morsink.Identity
             var creator = GetCreator<T>();
             return creator == null ? null : creator.Create(value);
         }
+
+        public virtual IIdentity New(Type forType, object entity)
+        {
+            var generator = GetGenerator(forType);
+            return generator == null ? null : generator.New(entity);
+        }
+        public virtual IIdentity<T> New<T>(T entity)
+        {
+            var generator = GetGenerator<T>();
+            return generator == null ? null : generator.New(entity);
+        }
+        public virtual bool SupportsNewIdentities => false;
         /// <summary>
         /// Evaluates equality for to IIdentity values.
         /// Assumes the first has this as provider.
