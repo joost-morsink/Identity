@@ -81,11 +81,24 @@ namespace Biz.Morsink.Identity
         {
             return idCreators.TryGetValue(typeof(T), out var creator) ? creator as IIdentityCreator<T> : null;
         }
+        /// <summary>
+        /// Returns true if the provider has any identity value creating methods.
+        /// </summary>
         public override bool SupportsNewIdentities => idGenerators.Count > 0;
+        /// <summary>
+        /// Gets an IIdentityGenerator instance for some type.
+        /// </summary>
+        /// <param name="type">he type to get an IIdentityGenerator for.</param>
+        /// <returns>An IIdentityGenerator for the specified type.</returns>
         protected override IIdentityGenerator GetGenerator(Type type)
         {
             return idGenerators.TryGetValue(type, out var res) ? res : null;
         }
+        /// <summary>
+        /// Gets an IIdentityGenerator&lt;T&gt; instance for some type.
+        /// </summary>
+        /// <typeparam name="T">he type to get an IIdentityGenerator for.</typeparam>
+        /// <returns>An IIdentityGenerator for the specified type.</returns>
         protected override IIdentityGenerator<T> GetGenerator<T>()
         {
             return idGenerators.TryGetValue(typeof(T), out var res) ? (IIdentityGenerator<T>)res : null;

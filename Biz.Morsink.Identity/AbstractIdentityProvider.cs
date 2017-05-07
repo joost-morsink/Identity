@@ -14,23 +14,32 @@ namespace Biz.Morsink.Identity
     public abstract class AbstractIdentityProvider : IIdentityProvider
     {
         /// <summary>
-        /// Gets a IIdentityCreator instance for some type.
+        /// Gets an IIdentityCreator instance for some type.
         /// </summary>
         /// <param name="type">The type to get an IIdentityCreator for.</param>
         /// <returns>An IIdentityCreator for the specified type.</returns>
         protected abstract IIdentityCreator GetCreator(Type type);
         /// <summary>
-        /// Gets a IIdentityCreator&lt;T&gt; instance for some type.
+        /// Gets an IIdentityCreator&lt;T&gt; instance for some type.
         /// </summary>
         /// <typeparam name="T">The type to get an IIdentityCreator for.</typeparam>
         /// <returns>An IIdentityCreator for the specified type.</returns>
         protected abstract IIdentityCreator<T> GetCreator<T>();
 
-
+        /// <summary>
+        /// Gets an IIdentityGenerator instance for some type.
+        /// </summary>
+        /// <param name="type">The type to get an IIdentityGenerator for.</param>
+        /// <returns>An IIdentityGenerator for the specified type.</returns>
         protected virtual IIdentityGenerator GetGenerator(Type type)
         {
             throw new InvalidOperationException();
         }
+        /// <summary>
+        /// Gets an IIdentityGenerator&lt;T&gt; instance for some type.
+        /// </summary>
+        /// <typeparam name="T">he type to get an IIdentityGenerator for.</typeparam>
+        /// <returns>An IIdentityGenerator for the specified type.</returns>
         protected virtual IIdentityGenerator<T> GetGenerator<T>()
         {
             throw new InvalidOperationException();
@@ -59,18 +68,36 @@ namespace Biz.Morsink.Identity
             var creator = GetCreator<T>();
             return creator == null ? null : creator.Create(value);
         }
-
+        /// <summary>
+        /// Creates a new identity value for some entity of some type.
+        /// </summary>
+        /// <param name="forType">The type of entity the identity value is created for.</param>
+        /// <param name="entity">The entity the identity value is created for.</param>
+        /// <returns>A new and unique identity value for the entity.</returns>
+        /// <exception cref="InvalidOperationException">When SupportsNewIdentities is false.</exception>
         public virtual IIdentity New(Type forType, object entity)
         {
             var generator = GetGenerator(forType);
             return generator == null ? null : generator.New(entity);
         }
+        /// <summary>
+        /// Creates a new identity value for some entity of some type.
+        /// </summary>
+        /// <typeparam name="T">The type of entity the identity value is created for.</typeparam>
+        /// <param name="entity">The entity the identity value is created for.</param>
+        /// <returns>A new and unique identity value for the entity.</returns>
+        /// <exception cref="InvalidOperationException">When SupportsNewIdentities is false.</exception>
         public virtual IIdentity<T> New<T>(T entity)
         {
             var generator = GetGenerator<T>();
             return generator == null ? null : generator.New(entity);
         }
+        /// <summary>
+        /// Indicates whether this identity provider supports the generation of new identity values for new entities.
+        /// Default implementation returns false.
+        /// </summary>
         public virtual bool SupportsNewIdentities => false;
+
         /// <summary>
         /// Evaluates equality for to IIdentity values.
         /// Assumes the first has this as provider.

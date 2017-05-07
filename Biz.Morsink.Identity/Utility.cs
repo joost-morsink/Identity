@@ -5,6 +5,10 @@ using System.Text;
 
 namespace Biz.Morsink.Identity
 {
+    /// <summary>
+    /// Utility class for anything identity related.
+    /// Contains extension methods.
+    /// </summary>
     public static class Utility
     {
         /// <summary>
@@ -32,11 +36,22 @@ namespace Biz.Morsink.Identity
         public static IIdentity<T> For<T>(this IIdentity id)
             => id.Identities.OfType<IIdentity<T>>().FirstOrDefault();
 
+        /// <summary>
+        /// Constructs an identity generator for a certain type of entity.
+        /// </summary>
+        /// <typeparam name="T">The type of entity the identity value should refer to.</typeparam>
+        /// <param name="provider">The provider to use for identity value generation.</param>
+        /// <returns>An identity generator.</returns>
         public static IdentityGenerator<T> Generator<T>(this IIdentityProvider provider)
             => new IdentityGenerator<T>(provider);
 
+        /// <summary>
+        /// Constructs an identity generator for a certain type of entity.
+        /// </summary>
+        /// <param name="type"></param>
+        /// <param name="provider">The provider to use for identity value generation.</param>
+        /// <returns>An identity generator.</returns>
         public static IdentityGenerator Generator(this IIdentityProvider provider, Type type)
             => new IdentityGenerator(provider, type);
-
     }
 }
