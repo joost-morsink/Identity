@@ -21,6 +21,10 @@ namespace Biz.Morsink.Identity
         /// </summary>
         object Value { get; }
         /// <summary>
+        /// Gets the component value corresponding to the T type.
+        /// </summary>
+        object ComponentValue { get; }
+        /// <summary>
         /// Gets all the identity values contained in this identity value (including a selfreference).
         /// </summary>
         IEnumerable<IIdentity> Identities { get; }
@@ -35,10 +39,6 @@ namespace Biz.Morsink.Identity
     /// <typeparam name="T">The type of object an instance is an identity value for.</typeparam>
     public interface IIdentity<T> : IIdentity
     {
-        /// <summary>
-        /// Gets the component value corresponding to the T type.
-        /// </summary>
-        object ComponentValue { get; }
     }
     /// <summary>
     /// This interface describes identity values of arity 2.

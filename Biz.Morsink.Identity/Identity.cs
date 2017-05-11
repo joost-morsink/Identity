@@ -30,7 +30,7 @@ namespace Biz.Morsink.Identity
         /// </summary>
         public Key1 ComponentValue => Value;
 
-        object IIdentity<Type1>.ComponentValue => Value;
+        object IIdentity.ComponentValue => Value;
 
         /// <summary>
         /// Gets the provider this instance belongs to.
@@ -105,7 +105,7 @@ namespace Biz.Morsink.Identity
         IIdentity IMultiaryIdentity.Parent => Parent;
         IIdentity<Type1> IMultiaryIdentity<Type2, IIdentity<Type1>>.Parent => Parent;
 
-        object IIdentity<Type2>.ComponentValue => ComponentValue;
+        object IIdentity.ComponentValue => ComponentValue;
 
         /// <summary>
         /// Gets the provider this instance belongs to.
@@ -187,7 +187,7 @@ namespace Biz.Morsink.Identity
         IIdentity IMultiaryIdentity.Parent => Parent;
         IIdentity<Type1, Type2> IMultiaryIdentity<Type3, IIdentity<Type1,Type2>>.Parent => Parent;
 
-        object IIdentity<Type3>.ComponentValue => ComponentValue;
+        object IIdentity.ComponentValue => ComponentValue;
 
         /// <summary>
         /// Gets the provider this instance belongs to.

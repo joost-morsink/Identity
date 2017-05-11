@@ -51,7 +51,7 @@ namespace Biz.Morsink.Identity
         /// <param name="converter"></param>
         public GenericIdentityProvider(IDataConverter converter = null)
         {
-            _converter = converter ?? DataConverter.Default;
+            _converter = converter ?? Converters.DefaultPipeline;
         }
 
         /// <summary>

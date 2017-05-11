@@ -78,7 +78,7 @@ namespace Biz.Morsink.Identity
         private NotAvailableValue notAvailable;
 
         public K ComponentValue => value;
-        object IIdentity<T>.ComponentValue => IsAvailable ? (object)value : notAvailable;
+        object IIdentity.ComponentValue => IsAvailable ? (object)value : notAvailable;
 
         public IIdentityProvider Provider { get; }
 

@@ -16,6 +16,7 @@ interface IIdentity
 {
     Type ForType { get; }
     object Value { get; }
+    object ComponentValue { get; }
 }
 ```
 
@@ -48,10 +49,10 @@ interface IIdentity
     IIdentityProvider Provider { get; }
     Type ForType { get; }
     object Value { get; }
+    object ComponentValue { get; }
 }
 interface IIdentity<T>
 {
-    object ComponentValue { get; }
 }
 interface IIdentityProvider 
 {

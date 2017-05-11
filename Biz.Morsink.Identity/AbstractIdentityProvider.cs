@@ -5,6 +5,8 @@ using System.Text;
 using Biz.Morsink.DataConvert;
 using System.Reflection;
 using Ex = System.Linq.Expressions.Expression;
+using Biz.Morsink.DataConvert.Converters;
+
 namespace Biz.Morsink.Identity
 {
     /// <summary>
@@ -142,7 +144,7 @@ namespace Biz.Morsink.Identity
         /// <param name="incoming">Indicates if the converter should handle incoming or outgoing conversions.</param>
         /// <returns>An IDataConverter that is able to make conversions between different types of values.</returns>
         public virtual IDataConverter GetConverter(Type t, bool incoming)
-            => DataConverter.Default;
+            => Converters.DefaultPipeline;
         /// <summary>
         /// Tries to translate some identity value to one that is owned by this identity provider.
         /// </summary>
@@ -160,5 +162,72 @@ namespace Biz.Morsink.Identity
         /// If the identity value cannot be translated, null.</returns>
         public virtual IIdentity<T> Translate<T>(IIdentity<T> id)
             => Create<T, object>(id.Value);
+        protected static class Converters
+        {
+            /// <summary>
+            /// Contains short circuit converters (Identity)
+            /// </summary>
+            public readonly static IEnumerable<IConverter> ShortCircuit = new IConverter[] { IdentityConverter.Instance };
+            /// <summary>
+            /// Contains high priority converters (IsoDateTime, Base64, ToString, TryParse)
+            /// </summary>
+            public readonly static IEnumerable<IConverter> HighPriority = new IConverter[]
+            {
+                IsoDateTimeConverter.Instance,
+                Base64Converter.Instance,
+                new ToStringConverter(true),
+                new TryParseConverter()
+            };
+            /// <summary>
+            /// Contains regular converters (EnumToNumeric, SimpleNumeric, NumericToEnum, EnumParse, ToNullable, Tuple, EnumerableToTuple)
+            /// </summary>
+            public readonly static IEnumerable<IConverter> Regular = new IConverter[]
+            {
+                EnumToNumericConverter.Instance,
+                SimpleNumericConverter.Instance,
+                new NumericToEnumConverter(),
+                EnumParseConverter.CaseInsensitive,
+                new ToNullableConverter(),
+                TupleConverter.Instance,
+                EnumerableToTupleConverter.Instance
+            };
+            /// <summary>
+            /// Contains fallback converters (FromStringRepresentation, Dynamic)
+            /// </summary>
+            public readonly static IEnumerable<IConverter> Fallback = new IConverter[]
+            {
+                new FromStringRepresentationConverter().Restrict((from, to) => from != typeof(Version)), // Version could conflict with numeric types' syntaxes.
+                new DynamicConverter()
+            };
+            /// <summary>
+            /// Contains the default pipeline of short circuit, high priority, regular and fallback converters.
+            /// </summary>
+            public static DataConverter DefaultPipeline { get; } =
+                 new DataConverter(
+                     ShortCircuit
+                        .Concat(HighPriority)
+                        .Concat(Regular)
+                        .Concat(Fallback));
+            /// <summary>
+            /// Creates a new pipeline of converters, allowing overrides for each of the four stages.
+            /// </summary>
+            /// <param name="shortCircuit">Optional override for short circuit converters.</param>
+            /// <param name="highPriority">Optional override for high priority converters.</param>
+            /// <param name="regular">Optional override for regular converters.</param>
+            /// <param name="fallback">Optional override for fallback converters.</param>
+            /// <returns>A DataConverter pipeline.</returns>
+            public static DataConverter CreatePipeline(
+                IEnumerable<IConverter> shortCircuit = null,
+                IEnumerable<IConverter> highPriority = null,
+                IEnumerable<IConverter> regular = null,
+                IEnumerable<IConverter> fallback = null)
+            {
+                return new DataConverter(
+                    (shortCircuit ?? ShortCircuit)
+                    .Concat(highPriority ?? HighPriority)
+                    .Concat(regular ?? Regular)
+                    .Concat(fallback ?? Fallback));
+            }
+        }
     }
 }
