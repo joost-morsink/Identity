@@ -102,6 +102,7 @@ namespace Biz.Morsink.Identity
         /// </summary>
         public Identity<Type1, Key1> Parent { get; }
 
+        IIdentity IMultiaryIdentity.Parent => Parent;
         IIdentity<Type1> IMultiaryIdentity<Type2, IIdentity<Type1>>.Parent => Parent;
 
         object IIdentity<Type2>.ComponentValue => ComponentValue;
@@ -183,6 +184,7 @@ namespace Biz.Morsink.Identity
         /// </summary>
         public Identity<Type1, Type2, Key1, Key2> Parent { get; }
 
+        IIdentity IMultiaryIdentity.Parent => Parent;
         IIdentity<Type1, Type2> IMultiaryIdentity<Type3, IIdentity<Type1,Type2>>.Parent => Parent;
 
         object IIdentity<Type3>.ComponentValue => ComponentValue;

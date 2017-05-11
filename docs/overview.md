@@ -49,6 +49,10 @@ interface IIdentity
     Type ForType { get; }
     object Value { get; }
 }
+interface IIdentity<T>
+{
+    object ComponentValue { get; }
+}
 interface IIdentityProvider 
 {
     IIdentity Translate(IIdentity id);
@@ -182,11 +186,16 @@ The unit identity, which denotes no object of any type, is needed for mathematic
 It is the only identity value with arity 0.
 
 ```csharp
-interface IMultiaryIdentity<T, P> : IIdentity<T>
+interface IMultiaryIdentity : IIdentity 
+{
+    IIdentity Parent { get; }
+}
+interface IMultiaryIdentity<T> : IMultiaryIdentity, IIdentity<T> 
+{ }
+interface IMultiaryIdentity<T, P> : IMultiaryIdentity<T>
     where P : IIdentity
 {
-    P Parent { get; }
-    object ComponentValue { get; }
+    new P Parent { get; }
 }
 ```
 
