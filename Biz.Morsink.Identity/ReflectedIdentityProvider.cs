@@ -14,11 +14,24 @@ namespace Biz.Morsink.Identity
     /// </summary>
     public abstract class ReflectedIdentityProvider : AbstractIdentityProvider
     {
+        /// <summary>
+        /// Only methods attributed with the CreatorAttribute will be considered as Creators for identities
+        /// </summary>
+        [AttributeUsage(AttributeTargets.Method)]
+        public class CreatorAttribute : Attribute { }
+
+        /// <summary>
+        /// Only methods attributed with the GeneratorAttribute will be considered as Generators for identities.
+        /// </summary>
+        [AttributeUsage(AttributeTargets.Method)]
+        public class GeneratorAttribute : Attribute { }
+
         private Dictionary<Type, IIdentityCreator> _idCreators;
         private Dictionary<Type, IIdentityCreator> idCreators => _idCreators = _idCreators ??
             // Select all the generic methods.
             (from mi in this.GetType().GetTypeInfo().DeclaredMethods
-             where mi.ReturnType.GenericTypeArguments.Length == 1 && mi.ReturnType.GetGenericTypeDefinition() == typeof(IIdentity<>)
+             where mi.GetCustomAttributes<CreatorAttribute>().Any()
+               && mi.ReturnType.GenericTypeArguments.Length == 1 && mi.ReturnType.GetGenericTypeDefinition() == typeof(IIdentity<>)
                && mi.GetGenericArguments().Length == 1
                && mi.GetParameters().Length == 1 && mi.GetParameters()[0].ParameterType == mi.GetGenericArguments()[0]
              select new
@@ -29,7 +42,8 @@ namespace Biz.Morsink.Identity
              }).Concat(
                 // Select all the specific methods.
                 from mi in this.GetType().GetTypeInfo().DeclaredMethods
-                where typeof(IIdentity).GetTypeInfo().IsAssignableFrom(mi.ReturnType.GetTypeInfo())
+                where mi.GetCustomAttributes<CreatorAttribute>().Any() 
+                  && typeof(IIdentity).GetTypeInfo().IsAssignableFrom(mi.ReturnType.GetTypeInfo())
                   && mi.GetGenericArguments().Length == 0
                 from itfs in mi.ReturnType.GetTypeInfo().ImplementedInterfaces.Concat(new[] { mi.ReturnType })
                 let iti = itfs.GetTypeInfo()
@@ -46,7 +60,8 @@ namespace Biz.Morsink.Identity
         private Dictionary<Type, IIdentityGenerator> _idGenerators;
         private Dictionary<Type, IIdentityGenerator> idGenerators => _idGenerators = _idGenerators ??
             (from mi in this.GetType().GetTypeInfo().DeclaredMethods
-             where mi.ReturnType.GenericTypeArguments.Length == 1 && mi.ReturnType.GetGenericTypeDefinition() == typeof(IIdentity<>)
+             where mi.GetCustomAttributes<GeneratorAttribute>().Any()
+               && mi.ReturnType.GenericTypeArguments.Length == 1 && mi.ReturnType.GetGenericTypeDefinition() == typeof(IIdentity<>)
              let eType = mi.ReturnType.GenericTypeArguments[0]
              where mi.GetGenericArguments().Length == 0
                && mi.GetParameters().Length == 1 && mi.GetParameters()[0].ParameterType == eType

@@ -23,6 +23,7 @@ namespace Biz.Morsink.Identity.Test
             var a = new A();
             Assert.AreNotEqual(idprov.New(a), idprov.New(a));
             Assert.AreEqual(idprov.New(typeof(A), new A()).ForType, typeof(A));
+            Assert.IsFalse(idprov.Equals(idprov.NewAId(), idprov.NewAId()));
         }
         [TestMethod]
         public void Generator_CodeId()

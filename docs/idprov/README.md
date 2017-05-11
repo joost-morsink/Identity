@@ -37,6 +37,7 @@ While the static type is `IIdentity`, at runtime there still it should always be
 The new methods create new identity values to use for new entities.
 It is up to the provider to determine whether and how to construct such values.
 The `SupportsNewIdentities` should indicate whether the identity provider is able to produce new identity values.
+If it is `false`, an `InvalidOperationException` should bw thrown on invocation of a `New` method.
 A storage layer must be able to provide new identity values for new entities, but an API layer should probably let the backend storage layer handle the generation of new identities.
 
 When an entity has an identity value that has more semantics than just being a key, the key is often determined by the domain layer. 
@@ -83,6 +84,8 @@ IIdentityCreator<T> GetCreator<T>();
 However it does not do anything useful as-is.
 
 ### ReflectedIdentityProvider
+
+#### Creation
 This base class uses reflection to find two kinds of methods on the derived class:
 
 * `IIdentity<T> MethodName<K>(K value)`
@@ -92,6 +95,7 @@ This base class uses reflection to find two kinds of methods on the derived clas
   * The arity of the returned identity value should match the arity of the method
   * The input value is converted using the default converter to a `ValueTuple` and split into input parameters.
 
+In both cases the method should be attributed with `[Creator]`. 
 These methods convert underlying values to concrete identity values.
 For instance, a database table 'Person' with autoincrement primary key, may be modeled by the identity provider as follows:
 
@@ -108,6 +112,11 @@ The constraint is that a method needs to be present that returns some `IIdentity
 
 The `ReflectedIdentityProvider` default implementation takes care of calls to `Create<Person, K>(K value)` and `Create<K>(Type type, K value` (where `type == typeof(Person)`) , by converting the `K` valued parameter to `int` and passing it to the `PersonId` method.
 The `Translate` methods build on these `Create` methods.
+
+#### Generation
+Generation of new and unique identity values may be supported by deriving classes. 
+The base class uses reflection to find methods with the `IIdentity<T> MethodName(T)` signature and attributed with `[Generator]`.
+These methods should provide the caller with new and unique identity values for supported types.
 
 ### GenericIdentityProvider
 This utility class provides an implementation for `IIdentityProvider` that is able to generate identity values for _any_ type.
