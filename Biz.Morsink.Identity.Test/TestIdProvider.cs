@@ -40,6 +40,8 @@ namespace Biz.Morsink.Identity.Test
             => AId(Interlocked.Increment(ref ids));
         public IIdentity<C> NewCId(C c)
             => CId(Interlocked.Increment(ref ids));
+        public IIdentity<D> NewDId(D d)
+            => DId(d.Code);
     }
 
 }

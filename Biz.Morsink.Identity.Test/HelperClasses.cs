@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Biz.Morsink.DataConvert;
 
 namespace Biz.Morsink.Identity.Test
 {
@@ -34,6 +35,7 @@ namespace Biz.Morsink.Identity.Test
     public class D
     {
         public IIdentity<D> Id { get; set; }
+        public string Code { get; set; }
     }
     public static class DomainExt
     {
