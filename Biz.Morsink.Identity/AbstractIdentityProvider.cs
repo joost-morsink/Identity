@@ -171,11 +171,11 @@ namespace Biz.Morsink.Identity
             /// <summary>
             /// Contains short circuit converters (Identity)
             /// </summary>
-            public readonly static IEnumerable<IConverter> ShortCircuit = new IConverter[] { IdentityConverter.Instance };
+            public static IEnumerable<IConverter> ShortCircuit => new IConverter[] { IdentityConverter.Instance };
             /// <summary>
             /// Contains high priority converters (IsoDateTime, Base64, ToString, TryParse)
             /// </summary>
-            public readonly static IEnumerable<IConverter> HighPriority = new IConverter[]
+            public static IEnumerable<IConverter> HighPriority => new IConverter[]
             {
                 IsoDateTimeConverter.Instance,
                 Base64Converter.Instance,
@@ -186,7 +186,7 @@ namespace Biz.Morsink.Identity
             /// <summary>
             /// Contains regular converters (EnumToNumeric, SimpleNumeric, NumericToEnum, EnumParse, ToNullable, Tuple, EnumerableToTuple)
             /// </summary>
-            public readonly static IEnumerable<IConverter> Regular = new IConverter[]
+            public static IEnumerable<IConverter> Regular => new IConverter[]
             {
                 EnumToNumericConverter.Instance,
                 SimpleNumericConverter.Instance,
@@ -200,7 +200,7 @@ namespace Biz.Morsink.Identity
             /// <summary>
             /// Contains fallback converters (FromStringRepresentation, Dynamic)
             /// </summary>
-            public readonly static IEnumerable<IConverter> Fallback = new IConverter[]
+            public static IEnumerable<IConverter> Fallback => new IConverter[]
             {
                 new FromStringRepresentationConverter()
                     .Restrict((from, to) => from != typeof(Version)) // Version could conflict with numeric types' syntaxes.
@@ -212,7 +212,7 @@ namespace Biz.Morsink.Identity
             /// </summary>
             public static DataConverter DefaultPipeline { get; } =
                  new DataConverter(
-                     ShortCircuit
+                     ShortCircuit 
                         .Concat(HighPriority)
                         .Concat(Regular)
                         .Concat(Fallback));
