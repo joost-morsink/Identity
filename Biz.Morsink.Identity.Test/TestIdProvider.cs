@@ -3,12 +3,18 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading;
 using Biz.Morsink.DataConvert;
+using System.Linq;
+using Biz.Morsink.DataConvert.Converters;
 
 namespace Biz.Morsink.Identity.Test
 {
     public class TestIdProvider : ReflectedIdentityProvider
     {
         public static TestIdProvider Instance { get; } = new TestIdProvider();
+        private DataConverter _converter = Converters.WithSeparator('-');
+
+        public override IDataConverter GetConverter(Type t, bool incoming)
+            => _converter;
 
         [Creator]
         public Identity<Person, int> PersonId(int value)
@@ -18,6 +24,9 @@ namespace Biz.Morsink.Identity.Test
         public Identity<Person, Detail, int, int> DetailId(int p, int d)
             => new Identity<Person, Detail, int, int>(this, p, d);
 
+        [Creator]
+        public Identity<Person, Detail, Sub, int, int, int> SubId(int p, int d, int s)
+            => new Identity<Person, Detail, Sub, int, int, int>(this, p, d, s);
         [Creator]
         public IIdentity<A> AId(int x)
             => new Identity<A, int>(this, x);

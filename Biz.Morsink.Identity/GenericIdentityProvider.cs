@@ -55,13 +55,22 @@ namespace Biz.Morsink.Identity
         }
 
         /// <summary>
+        /// This method should return the type of the underlying value for a certain entity type.
+        /// A GenericIdentityProvider always has the same underlying identity value type, specified in its generic type parameter.
+        /// This method returns exactly that type parameter.
+        /// </summary>
+        /// <param name="forType">The entity type.</param>
+        /// <returns>The type of the underlying identity values. (typeof(KO))</returns>
+        public override Type GetUnderlyingType(Type forType)
+            => typeof(KO);
+        /// <summary>
         /// Gets a IIdentityCreator instance for some type.
         /// </summary>
         /// <param name="type">The type to get an IIdentityCreator for.</param>
         /// <returns>An IIdentityCreator for the specified type.</returns>
         protected override IIdentityCreator GetCreator(Type type)
         {
-            return (IIdentityCreator)Activator.CreateInstance(typeof(Creator<>).MakeGenericType(type), this);
+            return (IIdentityCreator)Activator.CreateInstance(typeof(GenericIdentityProvider<>.Creator<>).MakeGenericType(typeof(KO), type), this);
         }
 
         /// <summary>

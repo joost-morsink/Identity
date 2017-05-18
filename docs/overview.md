@@ -56,6 +56,7 @@ interface IIdentity<T>
 }
 interface IIdentityProvider 
 {
+    Type GetUnderlyingType(Type forType);
     IIdentity Translate(IIdentity id);
     IIdentity<T> Translate<T>(IIdentity<T> id);
     IIdentity Create(Type forType, object value);
@@ -154,7 +155,7 @@ Of course the problem arises that Identity Providers on both sides might need to
 
 By using the `Biz.Morsink.DataConvert` library, two `IDataConverter`s can be defined per Identity Provider (or even per defined type within the Identity Provider). 
 One should be responsible for incoming identity values, and one for outgoing identity values.
-When converting an identity value, both the `IDataConverter`s can be tried. 
+When converting an identity value, both the `IDataConverter`s can be tried, with precedence on the importing identity provider.
 
 Arity 3 adds another layer of complexity when it is split in two, it adds the question whether to split it 2-1 or 1-2.
 In other words, it is quite straightforward to convert from `T(1,2,3)` to `T("1-2-3")` and back, but where do `T("1-2","3")` and `T("1","2-3")` fit in?
@@ -168,11 +169,16 @@ This leads us to divide the information in an identity value in:
   These component values are used to identify the system the entities belong to.
   Routing can be based on these values, and these values may be stripped for consumption in a local system after routing.
 
+Local identity values are always split at the end, assuming the component value is at the end, and everything preceding it is the value for the identity value's parent. 
+Infrastructural or _system_ component values are always at the start.
+
+**At the time of this writing there is no support for these kind of component values.**
+
 For multi-ary identity values we will define the following two terms:
 > **Definition:** The parent of an identity value of T is an identity value of U, where the arity of U is one less than the arity of T. 
 > The identity value of T also denotes the identity value of U.
  
-> **Definition:** The head component value of an identity value of T with parent identity value of U is the component value that is not contained in the indentity value of U.
+> **Definition:** The head component value of an identity value of T with parent identity value of U is the component value that is not contained in the identity value of U.
 
 What this means can be seen in the following table:
 
@@ -185,6 +191,7 @@ What this means can be seen in the following table:
 At the position of the question mark lies an important mathematical principle.
 The unit identity, which denotes no object of any type, is needed for mathematical closure.
 It is the only identity value with arity 0.
+However it may also be modeled by a null value.
 
 ```csharp
 interface IMultiaryIdentity : IIdentity 

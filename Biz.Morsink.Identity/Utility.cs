@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Biz.Morsink.DataConvert;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -53,5 +54,18 @@ namespace Biz.Morsink.Identity
         /// <returns>An identity generator.</returns>
         public static IdentityGenerator Generator(this IIdentityProvider provider, Type type)
             => new IdentityGenerator(provider, type);
+
+        private static R Call<T, R>(this T t, Func<T, R> f)
+            => f(t);
+        /// <summary>
+        /// Replaces a type of converter in an enumerable of converters.
+        /// </summary>
+        /// <typeparam name="T">The type of converter.</typeparam>
+        /// <param name="converters">A pipeline of converters.</param>
+        /// <param name="replacer">A replacer function.</param>
+        /// <returns>A new enumerable of converters with the specified type of converter replaced.</returns>
+        public static IEnumerable<IConverter> Replace<T>(this IEnumerable<IConverter> converters, Func<T, IConverter> replacer)
+            where T : class, IConverter
+            => converters.Select(c => (c as T)?.Call(replacer) ?? c).Where(c => c != null);
     }
 }

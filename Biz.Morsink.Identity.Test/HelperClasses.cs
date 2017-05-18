@@ -20,6 +20,10 @@ namespace Biz.Morsink.Identity.Test
         public IIdentity<Person, Detail> Id { get; set; }
         public string Description { get; set; }
     }
+    public class Sub
+    {
+        public IIdentity<Sub> Id { get; set; }
+    }
     public class A
     {
         public IIdentity<A> Id { get; set; }

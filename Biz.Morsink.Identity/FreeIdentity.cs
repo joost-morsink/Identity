@@ -1,10 +1,32 @@
-﻿using System;
+﻿using Biz.Morsink.DataConvert;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
 namespace Biz.Morsink.Identity
 {
+    public static class FreeIdentity
+    {
+        public struct FreeIdentityCreator<T>
+        {
+            private readonly IIdentity<T> _id;
+
+            internal FreeIdentityCreator(IIdentity<T> id)
+            {
+                _id = id;
+            }
+            public FreeIdentity<T, K> WithType<K>()
+            {
+                var conv = _id.Provider.GetConverter(typeof(T), false);
+                return conv.Convert(_id.Value).TryTo(out K cres)
+                    ? FreeIdentity<T>.Create(cres)
+                    : null;
+            }
+        }
+        public static FreeIdentityCreator<T> MakeFree<T>(this IIdentity<T> id)
+            => new FreeIdentityCreator<T>(id);
+    }
     /// <summary>
     /// Helper class to create 'free' identity values. 
     /// </summary>
@@ -70,7 +92,7 @@ namespace Biz.Morsink.Identity
         /// The value is an enumerable of component values obtained from a parent identity concatenated with this identity's component value.
         /// </summary>
         public IEnumerable<object> Value => Identities.Reverse().Select(id => id.ComponentValue);
-        object IIdentity.Value => Value;
+        object IIdentity.Value => Parent == null ? (object)ComponentValue : Value;
 
         /// <summary>
         /// Gets all the identities that are contained in this identity value.

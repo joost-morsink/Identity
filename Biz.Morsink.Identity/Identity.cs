@@ -165,6 +165,7 @@ namespace Biz.Morsink.Identity
         public Identity(Identity<Type1, Type2, Key1, Key2> parent, Key3 value)
         {
             Provider = parent.Provider;
+            Parent = parent;
             ComponentValue = value;
         }
 
