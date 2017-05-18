@@ -16,6 +16,12 @@ namespace Biz.Morsink.Identity
     public abstract class AbstractIdentityProvider : IIdentityProvider
     {
         /// <summary>
+        /// This method should return the type of the underlying value for a certain entity type.
+        /// </summary>
+        /// <param name="forType">The entity type.</param>
+        /// <returns>The type of the underlying identity values.</returns>
+        public abstract Type GetUnderlyingType(Type forType);
+        /// <summary>
         /// Gets an IIdentityCreator instance for some type.
         /// </summary>
         /// <param name="type">The type to get an IIdentityCreator for.</param>
@@ -109,11 +115,17 @@ namespace Biz.Morsink.Identity
         /// <param name="y">The second operand of equality</param>
         /// <returns>Whether the two identity values are considered equal by this provider.</returns>
         public virtual bool Equals(IIdentity x, IIdentity y)
-            => object.ReferenceEquals(x, y)
-            || x.ForType == y.ForType
-                && (object.ReferenceEquals(x.Value, y.Value)
-                    || x.Provider == y.Provider && object.Equals(x.Value, y.Value)
-                    || x.Value != null && object.Equals(x.Value, GetConverter(x.ForType, true).GetGeneralConverter(y.Value.GetType(), x.Value.GetType())(y.Value).Result));
+        {
+            if (object.ReferenceEquals(x, y)
+                || x.ForType == y.ForType
+                    && (object.ReferenceEquals(x.Value, y.Value)
+                        || x.Provider == y.Provider && object.Equals(x.Value, y.Value)))
+                return true;
+
+            var xt = Translate(x);
+            var yt = Translate(y);
+            return Equals(xt.Value, yt.Value);
+        }
         /// <summary>
         /// Evaluates equality for to IIdentity values.
         /// Assumes the first has this as provider.
@@ -125,17 +137,23 @@ namespace Biz.Morsink.Identity
         /// <param name="y">The second operand of equality</param>
         /// <returns>Whether the two identity values are considered equal by this provider.</returns>
         public virtual bool Equals<T>(IIdentity<T> x, IIdentity<T> y)
-            => object.ReferenceEquals(x, y)
+        {
+            if (object.ReferenceEquals(x, y)
                 || object.ReferenceEquals(x.Value, y.Value)
-                    || x.Provider == y.Provider && object.Equals(x.Value, y.Value)
-                    || x.Value != null && object.Equals(x.Value, GetConverter(typeof(T), true).GetGeneralConverter(y.Value.GetType(), x.Value.GetType())(y.Value).Result);
+                    || x.Provider == y.Provider && object.Equals(x.Value, y.Value))
+                return true;
+
+            var xt = Translate(x);
+            var yt = Translate(y);
+            return Equals(xt.Value, yt.Value);
+        }
         /// <summary>
         /// Gets a hashcode for an identity value.
         /// </summary>
         /// <param name="obj">The identity value to get the hashcode for.</param>
         /// <returns>A hashcode for the specified identity value.</returns>
         public int GetHashCode(IIdentity obj)
-            => obj.ForType.GetHashCode() ^ (obj.Value?.GetHashCode() ?? 0);
+            => obj.ForType.GetHashCode() ^ (Translate(obj).Value?.GetHashCode() ?? 0);
 
         /// <summary>
         /// Gets a data converter for converting underlying identity values.
@@ -152,7 +170,21 @@ namespace Biz.Morsink.Identity
         /// <returns>If the provider is able to understand the incoming identity value, a newly constructed identity value.
         /// If the identity value cannot be translated, null.</returns>
         public virtual IIdentity Translate(IIdentity id)
-            => Create(id.ForType, id.Value);
+        {
+            if (id.Provider == this)
+                return id;
+            var res = Create(id.ForType, id.Value);
+            if (res == null)
+            {
+                var converter = id.Provider?.GetConverter(id.ForType, false).GetGeneralConverter(typeof(object), GetUnderlyingType(id.ForType));
+                if (converter == null)
+                    return null;
+                var converted = converter(id.Value);
+                return converted.IsSuccessful ? Create(id.ForType, converted.Result) : null;
+            }
+            else
+                return res;
+        }
         /// <summary>
         /// Tries to translate some identity value to one that is owned by this identity provider.
         /// </summary>
@@ -161,8 +193,21 @@ namespace Biz.Morsink.Identity
         /// <returns>If the provider is able to understand the incoming identity value, a newly constructed identity value.
         /// If the identity value cannot be translated, null.</returns>
         public virtual IIdentity<T> Translate<T>(IIdentity<T> id)
-            => Create<T, object>(id.Value);
-
+        {
+            if (id.Provider == this)
+                return id;
+            var res = Create<T, object>(id.Value);
+            if (res == null)
+            {
+                var converter = id.Provider?.GetConverter(typeof(T), false).GetGeneralConverter(typeof(object), GetUnderlyingType(typeof(T)));
+                if (converter == null)
+                    return null;
+                var converted = converter(id.Value);
+                return converted.IsSuccessful ? Create<T, object>(converted.Result) : null;
+            }
+            else
+                return res;
+        }
         /// <summary>
         /// Contains convenience methods and properties for data conversion pipeline construction.
         /// </summary>
@@ -177,10 +222,8 @@ namespace Biz.Morsink.Identity
             /// </summary>
             public static IEnumerable<IConverter> HighPriority => new IConverter[]
             {
-                IsoDateTimeConverter.Instance,
                 Base64Converter.Instance,
-                new ToStringConverter(true)
-                    .Restrict((from, to) => !from.Name.Contains("Tuple")), // Exclude tuples.
+                new ToStringConverter(true),
                 new TryParseConverter()
             };
             /// <summary>
@@ -203,8 +246,7 @@ namespace Biz.Morsink.Identity
             public static IEnumerable<IConverter> Fallback => new IConverter[]
             {
                 new FromStringRepresentationConverter()
-                    .Restrict((from, to) => from != typeof(Version)) // Version could conflict with numeric types' syntaxes.
-                    .Restrict((from, to) => !from.Name.Contains("Tuple")), // Exclude tuples.
+                    .Restrict((from, to) => from != typeof(Version)), // Version could conflict with numeric types' syntaxes.
                 new DynamicConverter()
             };
             /// <summary>
@@ -212,7 +254,7 @@ namespace Biz.Morsink.Identity
             /// </summary>
             public static DataConverter DefaultPipeline { get; } =
                  new DataConverter(
-                     ShortCircuit 
+                     ShortCircuit
                         .Concat(HighPriority)
                         .Concat(Regular)
                         .Concat(Fallback));
@@ -242,10 +284,13 @@ namespace Biz.Morsink.Identity
             /// <param name="separator">The separator character.</param>
             /// <returns>A DataConverter pipeline.</returns>
             public static DataConverter WithSeparator(char separator) => CreatePipeline(
-            regular: Regular.Concat(new[] {
-                new LosslessStringToTupleConverter(separator),
-                new SeparatedStringConverter(separator).Restrict((f, t) => f != typeof(string))
-            }));
+                highPriority: HighPriority.Replace<ToStringConverter>(c => c.Restrict((from, to) => !from.Name.Contains("Tuple"))),
+                regular: Regular.Concat(new[] {
+                    new LosslessStringToTupleConverter(separator),
+                    new SeparatedStringConverter(separator).Restrict((f, t) => f != typeof(string))
+                }),
+                fallback: Fallback.Replace<RestrictTypesConverter>(c => (c.Inner as FromStringRepresentationConverter)
+                    ?.Restrict((from, to) => c.TypeFilter(from, to) && !from.Name.Contains("Tuple")) ?? c));
         }
     }
 }

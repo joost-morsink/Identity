@@ -14,6 +14,7 @@ namespace Biz.Morsink.Identity
     /// </summary>
     public abstract class ReflectedIdentityProvider : AbstractIdentityProvider
     {
+        #region Helper attributes
         /// <summary>
         /// Only methods attributed with the CreatorAttribute will be considered as Creators for identities
         /// </summary>
@@ -25,6 +26,33 @@ namespace Biz.Morsink.Identity
         /// </summary>
         [AttributeUsage(AttributeTargets.Method)]
         public class GeneratorAttribute : Attribute { }
+        #endregion
+
+        #region Cached reflection data
+        private Type GetType(Type[] types)
+        {
+            if (types.Length == 1)
+                return types[0];
+            else
+                return typeof(ValueTuple).GetTypeInfo().Assembly.GetType($"System.ValueTuple`{types.Length}").MakeGenericType(types);
+        }
+        private Dictionary<Type, Type> _underlyingTypes;
+        private Dictionary<Type, Type> underlyingTypes => _underlyingTypes = _underlyingTypes ??
+                (from mi in this.GetType().GetTypeInfo().DeclaredMethods
+                where mi.GetCustomAttributes<CreatorAttribute>().Any()
+                  && typeof(IIdentity).GetTypeInfo().IsAssignableFrom(mi.ReturnType.GetTypeInfo())
+                  && mi.GetGenericArguments().Length == 0
+                from itfs in mi.ReturnType.GetTypeInfo().ImplementedInterfaces.Concat(new[] { mi.ReturnType })
+                let iti = itfs.GetTypeInfo()
+                where iti.IsInterface && iti.GenericTypeArguments.Length == 1 && iti.GetGenericTypeDefinition() == typeof(IIdentity<>)
+                let idType = iti.GenericTypeArguments[0]
+                where mi.GetParameters().Length > 0 && mi.GetParameters()[0].ParameterType != idType
+                select new
+                {
+                    Key = idType,
+                    Value = GetType(mi.GetParameters().Select(pi => pi.ParameterType).ToArray())
+                }
+              ).ToDictionary(x => x.Key, x => x.Value);
 
         private Dictionary<Type, IIdentityCreator> _idCreators;
         private Dictionary<Type, IIdentityCreator> idCreators => _idCreators = _idCreators ??
@@ -71,12 +99,17 @@ namespace Biz.Morsink.Identity
                  Value = (IIdentityGenerator)Activator.CreateInstance(
                      typeof(MethodInfoIdentityGenerator<>).MakeGenericType(eType), this, mi)
              }).ToDictionary(x => x.Key, x => x.Value);
+        #endregion
 
-        private Func<object, IIdentity> createFunc(MethodInfo mi)
+        /// <summary>
+        /// This method should return the type of the underlying value for a certain entity type.
+        /// It determines this on specific identity value creating methods.
+        /// </summary>
+        /// <param name="forType">The entity type.</param>
+        /// <returns>The type of the underlying identity values.</returns>
+        public override Type GetUnderlyingType(Type forType)
         {
-            var input = Ex.Parameter(typeof(object), "input");
-            var lambda = Ex.Lambda(Ex.Call(Ex.Constant(this), mi, input), input);
-            return (Func<object, IIdentity>)lambda.Compile();
+            return underlyingTypes.TryGetValue(forType, out var u) ? u : null;
         }
         /// <summary>
         /// Gets a IIdentityCreator instance for some type.

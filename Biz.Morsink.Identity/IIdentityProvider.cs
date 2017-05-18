@@ -12,6 +12,12 @@ namespace Biz.Morsink.Identity
     public interface IIdentityProvider : IEqualityComparer<IIdentity>
     {
         /// <summary>
+        /// This method should return the type of the underlying value for a certain entity type.
+        /// </summary>
+        /// <param name="forType">The entity type.</param>
+        /// <returns>The type of the underlying identity values.</returns>
+        Type GetUnderlyingType(Type forType);
+        /// <summary>
         /// Tries to translate some identity value to one that is owned by this identity provider.
         /// </summary>
         /// <param name="id">The externally owned identity value.</param>

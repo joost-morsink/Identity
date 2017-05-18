@@ -74,14 +74,16 @@ However, an SQL database that uses sequences might not need to use late identiti
 ## AbstractIdentityProvider
 A convenient base class for an identity provider is the `AbstractIdentityProvider` class.
 It provides default (overridable) implementations for the whole `IIdentityProvider` interface.
-It delegates actual identity value creation to two protected methods:
+It delegates actual identity value creation to two protected methods and identity value generation to another two methods:
 
 ```csharp
 IIdentityCreator GetCreator(Type type);
 IIdentityCreator<T> GetCreator<T>();
+IIdentityGenerator GetGenerator(Type type);
+IIdentityGenerator GetGenerator<T>();
 ```
 
-However it does not do anything useful as-is.
+It also contains default equality logic and translation logic. 
 
 ### ReflectedIdentityProvider
 
@@ -130,3 +132,8 @@ new GenericIdentityProvider<int>().Create<Person, int>(42);
 
 The constructor takes an optional `IDataConverter` instance. 
 If nothing or null is passed the `DataConverter.Default` instance is used.
+
+## Free identity values
+Identity values that are not specifcally bound to an identity provider can be constructed using the `FreeIdentity` classes. 
+`FreeIdentity` instances have a `null` Provider reference and therefore cannot influence data type conversion.
+The use of free identities should be very limited.
