@@ -70,7 +70,7 @@ namespace Biz.Morsink.Identity
         /// The value is an enumerable of component values obtained from a parent identity concatenated with this identity's component value.
         /// </summary>
         public IEnumerable<object> Value => Identities.Reverse().Select(id => id.ComponentValue);
-        object IIdentity.Value => Value;
+        object IIdentity.Value => Parent == null ? (object)ComponentValue : Value;
 
         /// <summary>
         /// Gets all the identities that are contained in this identity value.

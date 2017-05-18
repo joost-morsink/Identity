@@ -162,7 +162,11 @@ namespace Biz.Morsink.Identity
         /// If the identity value cannot be translated, null.</returns>
         public virtual IIdentity<T> Translate<T>(IIdentity<T> id)
             => Create<T, object>(id.Value);
-        protected static class Converters
+
+        /// <summary>
+        /// Contains convenience methods and properties for data conversion pipeline construction.
+        /// </summary>
+        public static class Converters
         {
             /// <summary>
             /// Contains short circuit converters (Identity)
@@ -175,7 +179,8 @@ namespace Biz.Morsink.Identity
             {
                 IsoDateTimeConverter.Instance,
                 Base64Converter.Instance,
-                new ToStringConverter(true),
+                new ToStringConverter(true)
+                    .Restrict((from, to) => !from.Name.Contains("Tuple")), // Exclude tuples.
                 new TryParseConverter()
             };
             /// <summary>
@@ -189,14 +194,17 @@ namespace Biz.Morsink.Identity
                 EnumParseConverter.CaseInsensitive,
                 new ToNullableConverter(),
                 TupleConverter.Instance,
-                EnumerableToTupleConverter.Instance
+                EnumerableToTupleConverter.Instance,
+                TupleToArrayConverter.Instance
             };
             /// <summary>
             /// Contains fallback converters (FromStringRepresentation, Dynamic)
             /// </summary>
             public readonly static IEnumerable<IConverter> Fallback = new IConverter[]
             {
-                new FromStringRepresentationConverter().Restrict((from, to) => from != typeof(Version)), // Version could conflict with numeric types' syntaxes.
+                new FromStringRepresentationConverter()
+                    .Restrict((from, to) => from != typeof(Version)) // Version could conflict with numeric types' syntaxes.
+                    .Restrict((from, to) => !from.Name.Contains("Tuple")), // Exclude tuples.
                 new DynamicConverter()
             };
             /// <summary>
@@ -228,6 +236,16 @@ namespace Biz.Morsink.Identity
                     .Concat(regular ?? Regular)
                     .Concat(fallback ?? Fallback));
             }
+            /// <summary>
+            /// Creates a default pipeline, extended with separated strings.
+            /// </summary>
+            /// <param name="separator">The separator character.</param>
+            /// <returns>A DataConverter pipeline.</returns>
+            public static DataConverter WithSeparator(char separator) => CreatePipeline(
+            regular: Regular.Concat(new[] {
+                new LosslessStringToTupleConverter(separator),
+                new SeparatedStringConverter(separator).Restrict((f, t) => f != typeof(string))
+            }));
         }
     }
 }
