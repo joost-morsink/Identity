@@ -173,6 +173,8 @@ namespace Biz.Morsink.Identity
         {
             if (id.Provider == this)
                 return id;
+            if ((id as ILateIdentity)?.IsAvailable == false)
+                return null;
             var res = Create(id.ForType, id.Value);
             if (res == null)
             {
@@ -196,6 +198,8 @@ namespace Biz.Morsink.Identity
         {
             if (id.Provider == this)
                 return id;
+            if ((id as ILateIdentity)?.IsAvailable == false)
+                return null;
             var res = Create<T, object>(id.Value);
             if (res == null)
             {
