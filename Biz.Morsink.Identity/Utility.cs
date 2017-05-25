@@ -1,4 +1,4 @@
-﻿using Biz.Morsink.DataConvert;
+﻿﻿using Biz.Morsink.DataConvert;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -67,5 +67,21 @@ namespace Biz.Morsink.Identity
         public static IEnumerable<IConverter> Replace<T>(this IEnumerable<IConverter> converters, Func<T, IConverter> replacer)
             where T : class, IConverter
             => converters.Select(c => (c as T)?.Call(replacer) ?? c).Where(c => c != null);
-    }
+        /// <summary>
+        /// Indicates whether the identity provider supports identity values for the entity type.
+        /// </summary>
+        /// <returns>True if the entity type is supported.</returns>
+        /// <param name="provider">The identity provider.</param>
+        /// <typeparam name="T">The entity type.</typeparam>
+		public static bool Supports<T>(this IIdentityProvider provider)
+			=> provider.GetUnderlyingType(typeof(T)) != null;
+		/// <summary>
+		/// Indicates whether the identity provider supports identity values for the entity type.
+		/// </summary>
+		/// <returns>True if the entity type is supported.</returns>
+		/// <param name="provider">The identity provider.</param>
+		/// <param name="type">The entity type.</param>
+		public static bool Supports(this IIdentityProvider provider, Type type)
+            => provider.GetUnderlyingType(type) != null;
+	}
 }

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace Biz.Morsink.Identity
+namespace Biz.Morsink.Identity.Utils
 {
     /// <summary>
     /// Helper placeholder class for not available values. 

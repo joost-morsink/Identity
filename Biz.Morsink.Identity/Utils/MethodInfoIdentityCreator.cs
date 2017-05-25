@@ -7,7 +7,7 @@ using System.Reflection;
 using System.Text;
 using Biz.Morsink.DataConvert;
 using Ex = System.Linq.Expressions.Expression;
-namespace Biz.Morsink.Identity
+namespace Biz.Morsink.Identity.Utils
 {
     /// <summary>
     /// This helper class is used by the AbstractIdentityProvider to compile lambda's for an identity value creating method.

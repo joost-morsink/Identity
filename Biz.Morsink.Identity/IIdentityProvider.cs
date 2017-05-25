@@ -13,6 +13,7 @@ namespace Biz.Morsink.Identity
     {
         /// <summary>
         /// This method should return the type of the underlying value for a certain entity type.
+        /// It may return null if the entity type is not supported by this provider.
         /// </summary>
         /// <param name="forType">The entity type.</param>
         /// <returns>The type of the underlying identity values.</returns>

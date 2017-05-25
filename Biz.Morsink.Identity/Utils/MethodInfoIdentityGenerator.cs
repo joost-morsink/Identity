@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using System.Text;
 using Ex = System.Linq.Expressions.Expression;
-namespace Biz.Morsink.Identity
+namespace Biz.Morsink.Identity.Utils
 {
     /// <summary>
     /// Utility class to expose an identity value creating method as an IIdentityGenerator.
