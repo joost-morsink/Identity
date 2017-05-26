@@ -7,15 +7,15 @@ namespace Biz.Morsink.Identity.PathProvider
 {
     public struct Path
     {
-        public static Path Parse(string pathString, object data = null, char separator = '/')
+        public static Path Parse(string pathString, Type data = null, char separator = '/')
             => new Path(pathString.Split(separator), data);
-        public Path(IEnumerable<string> parts, object data)
+        public Path(IEnumerable<string> parts, Type data)
         {
             _parts = parts.ToArray();
             _skip = 0;
             Data = data;
         }
-        private Path(string[] parts, int skip, object data)
+        private Path(string[] parts, int skip, Type data)
         {
             _parts = parts;
             _skip = skip;
@@ -25,8 +25,9 @@ namespace Biz.Morsink.Identity.PathProvider
         private int _skip;
 
         public int Count => _parts.Length - _skip;
+        public int Arity => _parts.Where(p => p == "*").Count();
 
-        public object Data { get; }
+        public Type Data { get; }
 
         public string this[int index] => _parts[_skip + index];
         public Path Skip(int num = 1)
