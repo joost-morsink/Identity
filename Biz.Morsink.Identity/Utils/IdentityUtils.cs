@@ -16,7 +16,9 @@ namespace Biz.Morsink.Identity.Utils
             null,
             typeof(Identity<,>),
             typeof(Identity<,,,>),
-            typeof(Identity<,,,,,>)
+            typeof(Identity<,,,,,>),
+            typeof(Identity<,,,,,,,>),
+            typeof(Identity<,,,,,,,,,>)
         };
         /// <summary>
         /// Creates a new identity value based on reflection mechanisms.
