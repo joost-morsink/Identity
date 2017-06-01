@@ -6,8 +6,15 @@ using System.Text;
 
 namespace Biz.Morsink.Identity.PathProvider
 {
+    /// <summary>
+    /// Utility for maintaining a lazy tree to match Paths.
+    /// </summary>
     public class PathMatchTree
     {
+        /// <summary>
+        /// Constructs a new tree based on a collection of Paths.
+        /// </summary>
+        /// <param name="paths">The Paths to construct a tree for.</param>
         public PathMatchTree(IEnumerable<Path> paths)
         {
             _lookup = paths.Where(p => p.Count > 0).ToLookup(p => p[0]);
@@ -17,9 +24,16 @@ namespace Biz.Morsink.Identity.PathProvider
         private ConcurrentDictionary<string, PathMatchTree> _tree;
         private ILookup<string, Path> _lookup;
 
+        /// <summary>
+        /// A collections of Paths that could exactly match the current position in the tree.
+        /// </summary>
         public IReadOnlyList<Path> Terminals { get; }
-        //public PathMatchTree this[string part] => _tree.GetOrAdd(part, p => _lookup[p].Any() ? new PathMatchTree(_lookup[p].Select(path => path.Skip())) : null) ?? (part != "*" ? this["*"] : null);
     
+        /// <summary>
+        /// Traverses the tree down one level by using a part's content.
+        /// </summary>
+        /// <param name="part">The part to traverse.</param>
+        /// <returns>a new PathMatchTree instance if there is a branch, null otherwise.</returns>
         public PathMatchTree this[string part]
         {
             get
@@ -32,18 +46,20 @@ namespace Biz.Morsink.Identity.PathProvider
                     if (newVal == null)
                         return part == "*" ? null : this["*"];
                     else
-                    {
-                        _tree.TryAdd(part, newVal);
-                        return newVal;
-                    }
+                        return _tree.GetOrAdd(part, newVal);
                 }
             }
         }
+        /// <summary>
+        /// Try matching a Path by walking the tree.
+        /// </summary>
+        /// <param name="path">The path to match.</param>
+        /// <returns>A Match instance for the match result.</returns>
         public Match Walk(Path path)
         {
             if (path.Count == 0)
                 return Terminals.Select(p => p.GetFullPath().Match(path.GetFullPath()))
-                    .Where(m => m.IsSuccess).FirstOrDefault();
+                    .Where(m => m.IsSuccessful).FirstOrDefault();
             else
                 return this[path[0]]?.Walk(path.Skip()) ?? default(Match);
         }

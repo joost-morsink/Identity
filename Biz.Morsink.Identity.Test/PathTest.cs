@@ -52,42 +52,11 @@ namespace Biz.Morsink.Identity.Test
             };
             var tree = new PathMatchTree(ps);
             var m = tree.Walk(Path.Parse("/api/person/13/detail/42", null));
-            Assert.IsTrue(m.IsSuccess);
-            Assert.AreEqual(typeof(Detail), m.Path.Data);
+            Assert.IsTrue(m.IsSuccessful);
+            Assert.AreEqual(typeof(Detail), m.Path.ForType);
             Assert.AreEqual(2, m.Parts.Count);
             Assert.AreEqual("13", m.Parts[0]);
             Assert.AreEqual("42", m.Parts[1]);
-        }
-
-        [TestMethod]
-        public void PathIdProv()
-        {
-            var pp = new TestPathIdentityProvider();
-
-            var pid = pp.Creator<Person>().Create("123");
-            Assert.IsNotNull(pid);
-            Assert.AreEqual("123", pid.Value);
-            var did = pp.Creator<Detail>().Create(("123", 1));
-            Assert.IsNotNull(did);
-            Assert.AreEqual(("123", "1"), did.Value);
-
-            var tid = pp.Parse("/api/person/123/detail/45");
-            Assert.AreEqual(typeof(Detail), tid.ForType);
-            Assert.AreEqual(("123", "45"), tid.Value);
-            Assert.AreEqual("45", tid.ComponentValue);
-
-            Assert.AreEqual("/api/person/123", pp.ToPath(pid));
-            Assert.AreEqual("/api/person/123/detail/1", pp.ToPath(did));
-        
-        }
-        public class TestPathIdentityProvider : PathIdentityProvider
-        {
-            public TestPathIdentityProvider()
-            {
-                AddEntry(typeof(Person), new[] { typeof(Person) }, "/api/person/*");
-                AddEntry(typeof(Detail), new[] { typeof(Person), typeof(Detail) }, "/api/person/*/detail/*");
-                AddEntry(typeof(Sub), new[] { typeof(Person), typeof(Detail), typeof(Sub) }, "/api/person/*/detail/*/*");
-            }
         }
     }
 }
