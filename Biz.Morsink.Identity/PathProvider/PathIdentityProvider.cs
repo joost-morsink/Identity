@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Biz.Morsink.DataConvert;
+using Biz.Morsink.Identity.Utils;
 
 namespace Biz.Morsink.Identity.PathProvider
 {
@@ -70,7 +71,7 @@ namespace Biz.Morsink.Identity.PathProvider
                     if (this.entry.AllTypes.Length == 1)
                         return new Identity<T, U>(parent, res.Result);
                     else
-                        return Identity.Create<T>(parent, entry.AllTypes, converter.Convert(value).To<string[]>());
+                        return IdentityUtils.Create<T>(parent, entry.AllTypes, converter.Convert(value).To<string[]>());
                 }
                 else
                     return null;

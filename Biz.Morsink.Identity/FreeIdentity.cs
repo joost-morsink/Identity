@@ -6,8 +6,15 @@ using System.Text;
 
 namespace Biz.Morsink.Identity
 {
+    /// <summary>
+    /// Static helper class to create 'free' identity values.
+    /// </summary>
     public static class FreeIdentity
     {
+        /// <summary>
+        /// Identity Creator implementation for free identity values.
+        /// </summary>
+        /// <typeparam name="T">The entity type.</typeparam>
         public struct FreeIdentityCreator<T>
         {
             private readonly IIdentity<T> _id;
@@ -24,6 +31,12 @@ namespace Biz.Morsink.Identity
                     : null;
             }
         }
+        /// <summary>
+        /// Creates a creator of 'free' identity values based on a provider-bound one.
+        ///  </summary>
+        /// <typeparam name="T">The entity type.</typeparam>
+        /// <param name="id">The provider-bound identity value.</param>
+        /// <returns>A identity creator for free identity values.</returns>
         public static FreeIdentityCreator<T> MakeFree<T>(this IIdentity<T> id)
             => new FreeIdentityCreator<T>(id);
     }

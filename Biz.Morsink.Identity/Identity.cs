@@ -5,23 +5,7 @@ using System.Text;
 
 namespace Biz.Morsink.Identity
 {
-    public class Identity
-    {
-        private static Type[] IDENTITY_TYPES = new[]
-        {
-            null,
-            typeof(Identity<,>),
-            typeof(Identity<,,,>),
-            typeof(Identity<,,,,,>)
-        };
-        public static IIdentity<T> Create<T>(IIdentityProvider provider, Type[] types, object[] vals)
-        {
-            if (types.Length != vals.Length)
-                throw new ArgumentException("types.Length should equal vals.Length");
-            var type = IDENTITY_TYPES[types.Length].MakeGenericType(types.Concat(vals.Select(v => v.GetType())).ToArray());
-            return (IIdentity<T>)Activator.CreateInstance(type, new object[] { provider }.Concat(vals).ToArray());
-        }
-    }
+ 
     /// <summary>
     /// Reference implementation for 1-ary indentity values.
     /// </summary>
