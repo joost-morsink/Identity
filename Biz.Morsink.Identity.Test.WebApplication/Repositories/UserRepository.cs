@@ -7,13 +7,12 @@ using System.Threading.Tasks;
 
 namespace Biz.Morsink.Identity.Test.WebApplication.Repositories
 {
+    /// <summary>
+    /// This class representsthe repository pattern for User objects.
+    /// </summary>
     public class UserRepository : IRead<User>
     {
         private static BackendIdentityProvider IdProvider = BackendIdentityProvider.Instance;
-        public UserRepository()
-        {
-
-        }
         private List<User> _users = new List<User>
         {
             new User
@@ -21,7 +20,7 @@ namespace Biz.Morsink.Identity.Test.WebApplication.Repositories
                 Id = IdProvider.UserId("Joost"),
                 Name = "Joost",
                 FullName = "Joost Morsink",
-                Password = "Welcome01"
+                Password = "81fffa21c78a37f721d2aa2a9532d82f7f01c984"
             },
             new User
             {
@@ -31,7 +30,11 @@ namespace Biz.Morsink.Identity.Test.WebApplication.Repositories
                 Password =  ""
             }
         };
-
+        /// <summary>
+        /// Tries to find a user in this repository.
+        /// </summary>
+        /// <param name="id">The identity value for the user.</param>
+        /// <returns>A User object if one can be found in this repository, null otherwise.</returns>
         public User Read(IIdentity<User> id)
             => _users.Where(u => IdProvider.Equals(u.Id, id)).FirstOrDefault();
 

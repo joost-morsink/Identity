@@ -7,8 +7,15 @@ using System.Threading.Tasks;
 
 namespace Biz.Morsink.Identity.Test.WebApplication.Repositories
 {
+    /// <summary>
+    /// This class represents the repository pattern for Blog, BlogEntry and Comment objects.
+    /// For each of those it implements the IRead interface.
+    /// </summary>
     public class BlogRepository : IRead<Blog>, IRead<BlogEntry>, IRead<Comment>
     {
+        /// <summary>
+        /// A static singleton.
+        /// </summary>
         private static BackendIdentityProvider IdProvider = BackendIdentityProvider.Instance;
 
         private List<Blog> blogs = new List<Blog>
