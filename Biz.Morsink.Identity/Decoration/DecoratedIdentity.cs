@@ -89,6 +89,11 @@ namespace Biz.Morsink.Identity
     public class DecoratedIdentity<D, T> : DecoratedIdentity<D, IIdentity<T>, T>
         where D : IIdentity
     {
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        /// <param name="decoration">The decoration value.</param>
+        /// <param name="identity">The identity value.</param>
         public DecoratedIdentity(D decoration, IIdentity<T> identity) : base(decoration, identity) { }
     }
 }

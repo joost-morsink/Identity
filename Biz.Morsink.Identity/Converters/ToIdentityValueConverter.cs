@@ -13,6 +13,10 @@ namespace Biz.Morsink.Identity.Converters
     /// </summary>
     public class ToIdentityValueConverter : IConverter
     {
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        /// <param name="provider"></param>
         public ToIdentityValueConverter(IIdentityProvider provider)
         {
             Provider = provider;

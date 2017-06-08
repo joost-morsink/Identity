@@ -220,7 +220,11 @@ namespace Biz.Morsink.Identity.PathProvider
         {
             return entries.TryGetValue(forType, out var e) ? GetUnderlyingType(e.AllTypes.Length) : null;
         }
-
+        /// <summary>
+        /// Gets an IIdentityCreator&lt;T&gt; instance for some type.
+        /// </summary>
+        /// <param name="type">The type to get an IIdentityCreator for.</param>
+        /// <returns>An IIdentityCreator for the specified type.</returns>
         protected override IIdentityCreator GetCreator(Type type)
         {
             if (type == typeof(object))
@@ -232,7 +236,11 @@ namespace Biz.Morsink.Identity.PathProvider
             else
                 return null;
         }
-
+        /// <summary>
+        /// Gets an IIdentityCreator&lt;T&gt; instance for some type.
+        /// </summary>
+        /// <typeparam name="T">The type to get an IIdentityCreator for.</typeparam>
+        /// <returns>An IIdentityCreator for the specified type.</returns>
         protected override IIdentityCreator<T> GetCreator<T>()
             => GetCreator(typeof(T)) as IIdentityCreator<T>;
 

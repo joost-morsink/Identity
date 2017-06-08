@@ -11,6 +11,9 @@ namespace Biz.Morsink.Identity.Converters
     /// </summary>
     public class FromIdentityValueConverter : IConverter, IDataConverterRef
     {
+        /// <summary>
+        /// Constructor.
+        /// </summary>
         public FromIdentityValueConverter()
         {
         }
