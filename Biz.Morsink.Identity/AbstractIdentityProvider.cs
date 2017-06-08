@@ -180,10 +180,10 @@ namespace Biz.Morsink.Identity
                 if (converter == null)
                     return null;
                 var converted = converter(id.Value);
-                return converted.IsSuccessful ? Create(id.ForType, converted.Result) : null;
+                return converted.IsSuccessful ? id.MapContainer(Create(id.ForType, converted.Result)) : null;
             }
             else
-                return res;
+                return id.MapContainer(res);
         }
         /// <summary>
         /// Tries to translate some identity value to one that is owned by this identity provider.
@@ -203,10 +203,10 @@ namespace Biz.Morsink.Identity
                 if (converter == null)
                     return null;
                 var converted = converter(id.Value);
-                return converted.IsSuccessful ? Create<T, object>(converted.Result) : null;
+                return converted.IsSuccessful ? id.MapContainer(Create<T, object>(converted.Result)) : null;
             }
             else
-                return res;
+                return id.MapContainer(res);
         }
         /// <summary>
         /// Contains convenience methods and properties for data conversion pipeline construction.

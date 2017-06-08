@@ -8,7 +8,7 @@ namespace Biz.Morsink.Identity
     {
         public SystemIdentity(string sys) : base(null, sys) { }
     }
-    public class IdentityWithSystem<I> : IIdentity
+    public class IdentityWithSystem<I> : IIdentity, IIdentityContainer
         where I : IIdentity
     {
         public IdentityWithSystem(IIdentity<System> system, I innerIdentity)
@@ -38,6 +38,11 @@ namespace Biz.Morsink.Identity
         }
 
         public int Arity => InnerIdentity.Arity;
+
+        IIdentity IIdentityContainer.Map(IIdentity id)
+            => new IdentityWithSystem<IIdentity>(System, id);
+        IIdentity<U> IIdentityContainer.Map<U>(IIdentity<U> id)
+            => new IdentityWithSystem<U, IIdentity<U>>(System, id);
     }
     public class IdentityWithSystem<T, I> : IdentityWithSystem<I>, IIdentity<T>
         where I : IIdentity<T>
@@ -45,6 +50,13 @@ namespace Biz.Morsink.Identity
         public IdentityWithSystem(IIdentity<System> system, I innerIdentity) : base(system, innerIdentity)
         {
         }
+    }
+    public static class SystemExt
+    {
+        public static IIdentity WithSystem(this IIdentity id, IIdentity<System> sys)
+            => new IdentityWithSystem<IIdentity>(sys, id);
+        public static IIdentity<T> WithSystem<T>(this IIdentity<T> id, IIdentity<System> sys)
+            => new IdentityWithSystem<T, IIdentity<T>>(sys, id);
     }
     public sealed class System
     {
