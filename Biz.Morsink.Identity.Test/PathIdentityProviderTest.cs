@@ -64,6 +64,7 @@ namespace Biz.Morsink.Identity.Test
         {
             public ArityMismatchProvider()
             {
+                BuildEntry(typeof(A)).WithPath("/api/a/*/*").Add();
                 AddEntry("/api/a/*/*", typeof(A));
             }
         }
