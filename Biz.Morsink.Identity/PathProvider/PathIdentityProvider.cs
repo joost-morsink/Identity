@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using Biz.Morsink.DataConvert;
 using Biz.Morsink.Identity.Utils;
+using System.Collections.Immutable;
 
 namespace Biz.Morsink.Identity.PathProvider
 {
@@ -15,18 +16,95 @@ namespace Biz.Morsink.Identity.PathProvider
         #region Helper classes
         private class Entry
         {
-            public Entry(Type type, Type[] allTypes, string path)
-                : this(type, allTypes, Path.Parse(path, type))
+            public Entry(Type type, Type[] allTypes, params string[] paths)
+                : this(type, allTypes, paths.Select(path => Path.Parse(path, type)))
             { }
-            public Entry(Type type, Type[] allTypes, Path path)
+            public Entry(Type type, Type[] allTypes, IEnumerable<Path> paths)
             {
                 Type = type;
                 AllTypes = allTypes;
-                Path = path;
+                Paths = paths.ToArray();
             }
             public Type Type { get; }
             public Type[] AllTypes { get; }
-            public Path Path { get; }
+            public IReadOnlyList<Path> Paths { get; }
+            public Path PrimaryPath => Paths[0];
+        }
+        /// <summary>
+        /// A helper struct to facilitate building entries in a PathIdentityProvider
+        /// </summary>
+        protected struct EntryBuilder
+        {
+            /// <summary>
+            /// Creates a new EntryBuilder.
+            /// </summary>
+            /// <param name="parent">The ParentIdentityProvider the entry will be added to.</param>
+            /// <param name="allTypes">The entity types of the identity value's components.</param>
+            /// <returns>An EntryBuilder.</returns>
+            internal static EntryBuilder Create(PathIdentityProvider parent, params Type[] allTypes)
+                => new EntryBuilder(parent, allTypes, ImmutableList<(Path,Type[])>.Empty);
+            private readonly PathIdentityProvider parent;
+            private readonly Type[] allTypes;
+            private readonly ImmutableList<(Path,Type[])> paths;
+
+            private EntryBuilder(PathIdentityProvider parent, Type[] allTypes, ImmutableList<(Path,Type[])> paths)
+            {
+                this.parent = parent;
+                this.allTypes = allTypes;
+                this.paths = paths;
+            }
+            /// <summary>
+            /// Adds a path to the entry.
+            /// </summary>
+            /// <param name="path">The path to add to the entry.</param>
+            /// <returns>A new EntryBuilder containing the specified path.</returns>
+            public EntryBuilder WithPath(string path)
+                => WithPath(path, allTypes);
+            /// <summary>
+            /// Adds a path to the entry, with possibly a capped arity.
+            /// </summary>
+            /// <param name="path">The path to add to the entry.</param>
+            /// <param name="arity">The arity of wildcards in the path.</param>
+            /// <returns>A new EntryBuilder containing the specified path.</returns>
+            public EntryBuilder WithPath(string path, int arity)
+                => WithPath(path, allTypes.Skip(allTypes.Length - arity).ToArray());
+            /// <summary>
+            /// Adds multiple paths to the entry.
+            /// </summary>
+            /// <param name="paths">The paths to add to the entry.</param>
+            /// <returns>A new EntryBuilder containing the specified paths.</returns>
+            public EntryBuilder WithPaths(params string[] paths)
+            {
+                var res = this;
+                foreach (var path in paths)
+                    res = res.WithPath(path);
+                return res;
+            }
+            /// <summary>
+            /// Adds a path to the entry with a specific list of entity types.
+            /// </summary>
+            /// <param name="path">The path to add to the entry.</param>
+            /// <param name="types">The entity types of the identity value's components.</param>
+            /// <returns>A new EntryBuilder containing the specified path.</returns>
+            public EntryBuilder WithPath(string path, params Type[] types)
+            {
+                var p = Path.Parse(path, allTypes[allTypes.Length - 1]);
+                if (p.Arity != types.Length)
+                    throw new ArgumentException("Number of wildcards does not match arity of identity value.");
+                return new EntryBuilder(parent, allTypes, paths.Add((p, types)));
+            }
+            /// <summary>
+            /// Adds the entry to the parent PathIdentityProvider this builder was created from.
+            /// </summary>
+            public void Add()
+            {
+                if (!paths.IsEmpty)
+                {
+                    parent.entries.Add(allTypes[allTypes.Length - 1], new Entry(allTypes[allTypes.Length - 1], allTypes, paths.Select(t => t.Item1)));
+                    parent.matchTree = new Lazy<PathMatchTree>(parent.GetMatchTree);
+                }
+            }
+            
         }
         private class CreatorForObject : IIdentityCreator<object>
         {
@@ -71,7 +149,7 @@ namespace Biz.Morsink.Identity.PathProvider
                     if (this.entry.AllTypes.Length == 1)
                         return new Identity<T, U>(parent, res.Result);
                     else
-                        return IdentityUtils.Create<T>(parent, entry.AllTypes, converter.Convert(value).To<string[]>());
+                        return IdentityUtils.Create<T>(parent, entry.AllTypes, converter.Convert(res.Result).To<string[]>());
                 }
                 else
                     return null;
@@ -84,8 +162,8 @@ namespace Biz.Morsink.Identity.PathProvider
 
         private Dictionary<Type, Entry> entries;
         private Lazy<PathMatchTree> matchTree;
-        private PathMatchTree getMatchTree()
-            => new PathMatchTree(entries.Select(e => e.Value.Path));
+        private PathMatchTree GetMatchTree()
+            => new PathMatchTree(entries.SelectMany(e => e.Value.Paths));
 
         /// <summary>
         /// Constructor.
@@ -93,7 +171,7 @@ namespace Biz.Morsink.Identity.PathProvider
         public PathIdentityProvider()
         {
             entries = new Dictionary<Type, Entry>();
-            matchTree = new Lazy<PathMatchTree>(getMatchTree);
+            matchTree = new Lazy<PathMatchTree>(GetMatchTree);
         }
         /// <summary>
         /// Add an entity type entry into this providers registry.
@@ -104,13 +182,15 @@ namespace Biz.Morsink.Identity.PathProvider
         {
             if (types.Length == 0)
                 throw new ArgumentException("Please specify at least one type");
-            var type = types.Last();
-            var path = Path.Parse(pathstring, type);
-            if (path.Arity != types.Length)
-                throw new ArgumentException("Number of wildcards does not match arity of identity value.");
-            entries[type] = new Entry(type, types, path);
-            matchTree = new Lazy<PathMatchTree>(getMatchTree);
+            BuildEntry(types).WithPath(pathstring).Add();
         }
+        /// <summary>
+        /// Creates an entry builder
+        /// </summary>
+        /// <param name="types">The entity types for the identity value's components</param>
+        /// <returns>An EntryBuilder</returns>
+        protected EntryBuilder BuildEntry(params Type[] types)
+            => EntryBuilder.Create(this, types);
 
         private Type GetUnderlyingType(int arity)
         {
@@ -214,9 +294,9 @@ namespace Biz.Morsink.Identity.PathProvider
             if (entries.TryGetValue(id.ForType, out var entry))
             {
                 if (id.Arity == 1)
-                    return new Identity<object, string>(this, entry.Path.FillWildcards(new[] { converter.Convert(id.Value).To<string>() }).PathString);
+                    return new Identity<object, string>(this, entry.PrimaryPath.FillWildcards(new[] { converter.Convert(id.Value).To<string>() }).PathString);
                 else
-                    return new Identity<object, string>(this, entry.Path.FillWildcards(converter.Convert(id.Value).To<string[]>()).PathString);
+                    return new Identity<object, string>(this, entry.PrimaryPath.FillWildcards(converter.Convert(id.Value).To<string[]>()).PathString);
             }
             else
                 return null;

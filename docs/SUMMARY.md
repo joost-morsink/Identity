@@ -6,4 +6,5 @@
   * [Arity](overview.md#arity)
   * [References](overview.md#refs)
 * [Identity Providers](idprov/README.md)
+* [Example Web Api](example.md)
   
