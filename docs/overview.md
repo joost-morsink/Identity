@@ -259,6 +259,8 @@ This effectively alters the arity from 1 to 2, routing the identity value resolv
 When the responsibility of systems is properly segregated, these kinds of 'tricks' are of course not necessary.
 However, in practice, when integrating with legacy systems or when migrating between old and new versions of systems they can prove to be very useful tricks.
 
+For the purpose of infrastructural identity values, the classes `SystemIdentity`, `IdentityWithSystem` and `DecoratedIdentity` have been implemented.
+
 ### Self references
 This section is deliberately left blank, because it is not known at this time how to model these kinds of references. 
 This placeholder functions as a reminder.
