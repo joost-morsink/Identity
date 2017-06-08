@@ -23,10 +23,10 @@ namespace Biz.Morsink.Identity.Test
             var id = FreeIdentity<Person>.Create(42);
             var decId = id.WithSystem(new SystemIdentity("SYS"));
 
-            Assert.AreEqual(typeof(Person), decId.ForType);
-            Assert.AreEqual("SYS", decId.For<Sys>().Value);
-            Assert.AreEqual(42, decId.For<Person>().Value);
-            Assert.AreEqual(1, decId.Arity);
+            Assert.AreEqual(typeof(Person), decId.ForType, "Adding a system should preserve the ForType property.");
+            Assert.AreEqual("SYS", decId.For<Sys>().Value, "Adding a system should allow the system to be found.");
+            Assert.AreEqual(42, decId.For<Person>().Value, "Adding a system should preserve the InnerIdentity's underlying value.");
+            Assert.AreEqual(1, decId.Arity, "Adding a system should preserve the Arity property.");
         }
 
         [TestMethod]
@@ -36,10 +36,10 @@ namespace Biz.Morsink.Identity.Test
             var decId = id.WithSystem(new SystemIdentity("SYS"));
             var pid = provider.Translate(decId);
 
-            Assert.AreEqual(typeof(Person), pid.ForType);
-            Assert.AreEqual("SYS", pid.For<Sys>().Value);
-            Assert.AreEqual(42, pid.For<Person>().Value);
-            Assert.AreEqual(1, pid.Arity);
+            Assert.AreEqual(typeof(Person), pid.ForType, "Translating an identity value with system should preserve the ForType property.");
+            Assert.AreEqual("SYS", pid.For<Sys>().Value, "Translating an identity value with system should preserve the system identity value.");
+            Assert.AreEqual(42, pid.For<Person>().Value, "Translating an identity value with system should preserve the InnerIdentity's underlying value.");
+            Assert.AreEqual(1, pid.Arity, "Translating an identity value with system should preserve the Arity property.");
         }
     }
 }

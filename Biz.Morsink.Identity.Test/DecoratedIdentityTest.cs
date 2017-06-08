@@ -23,10 +23,10 @@ namespace Biz.Morsink.Identity.Test
             var id = FreeIdentity<Person>.Create(42);
             var decId = id.Decorate(new SystemIdentity("SYS"));
 
-            Assert.AreEqual(typeof(Person), decId.ForType);
-            Assert.AreEqual("SYS", decId.For<Sys>().Value);
-            Assert.AreEqual(42, decId.For<Person>().Value);
-            Assert.AreEqual(1, decId.Arity);
+            Assert.AreEqual(typeof(Person), decId.ForType, "Decoration should preserve the ForType property." );
+            Assert.AreEqual("SYS", decId.For<Sys>().Value, "The decoration should be available in the Identities property.");
+            Assert.AreEqual(42, decId.For<Person>().Value, "The original identity value should be preserved in the decorated value.");
+            Assert.AreEqual(1, decId.Arity, "Decoration should preserve the Arity property.");
         }
 
         [TestMethod]
@@ -36,10 +36,10 @@ namespace Biz.Morsink.Identity.Test
             var decId = id.Decorate(new SystemIdentity("SYS"));
             var pid = provider.Translate(decId);
 
-            Assert.AreEqual(typeof(Person), pid.ForType);
-            Assert.AreEqual("SYS", pid.For<Sys>().Value);
-            Assert.AreEqual(42, pid.For<Person>().Value);
-            Assert.AreEqual(1, pid.Arity);
+            Assert.AreEqual(typeof(Person), pid.ForType, "Translation after decoration should preserve the ForType property.");
+            Assert.AreEqual("SYS", pid.For<Sys>().Value, "Translation should preserve the decoration.");
+            Assert.AreEqual(42, pid.For<Person>().Value, "Translation after decoration should preserve the underlying Value.");
+            Assert.AreEqual(1, pid.Arity,"Translation after decoration should preserve the Arity property.");
         }
     }
 }

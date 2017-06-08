@@ -8,6 +8,9 @@ using Biz.Morsink.DataConvert.Converters;
 
 namespace Biz.Morsink.Identity.Test
 {
+    /// <summary>
+    /// An implementation of a ReflectedIdentityProvider for testing purposes.
+    /// </summary>
     public class TestIdProvider : ReflectedIdentityProvider
     {
         public static TestIdProvider Instance { get; } = new TestIdProvider();
