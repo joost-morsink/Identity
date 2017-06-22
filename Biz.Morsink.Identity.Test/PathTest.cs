@@ -13,8 +13,17 @@ namespace Biz.Morsink.Identity.Test
         public void Path_Trivial()
         {
             var p = Path.Parse("/api/person/1", null);
-            Assert.AreEqual(4, p.Count,"Count property should count all parts.");
+            Assert.AreEqual(4, p.Count, "Count property should count all parts.");
             Assert.IsTrue(p[0] == "" && p[1] == "api" && p[2] == "person" && p[3] == "1", "The parsed path should match the parts in number and order of the parts in the original path string.");
+        }
+        [TestMethod]
+        public void Path_NoStar()
+        {
+            var p = Path.Parse("/api/home");
+            var q = Path.Parse("/api/home");
+            var m = p.Match(q);
+            Assert.IsTrue(m.IsSuccessful, "Two equal paths should match.");
+            Assert.AreEqual(0, m.Parts.Count, "No wildcards should result in a 0-ary match.");
         }
         [TestMethod]
         public void Path_Star()
@@ -22,7 +31,7 @@ namespace Biz.Morsink.Identity.Test
             var p = Path.Parse("/api/person/*/test", null);
             var q = Path.Parse("/api/person/123/test", null);
             var m = p.Match(q);
-            Assert.IsTrue(m.IsSuccessful ,"A wildcard should match any value.");
+            Assert.IsTrue(m.IsSuccessful, "A wildcard should match any value.");
             Assert.AreEqual(1, m.Parts.Count, "One wildcard should result in a unary match.");
             Assert.AreEqual("123", m.Parts[0], "The matched wildcard part should match the one in the path string.");
         }

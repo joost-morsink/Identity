@@ -42,12 +42,12 @@ namespace Biz.Morsink.Identity.PathProvider
             /// <param name="allTypes">The entity types of the identity value's components.</param>
             /// <returns>An EntryBuilder.</returns>
             internal static EntryBuilder Create(PathIdentityProvider parent, params Type[] allTypes)
-                => new EntryBuilder(parent, allTypes, ImmutableList<(Path,Type[])>.Empty);
+                => new EntryBuilder(parent, allTypes, ImmutableList<(Path, Type[])>.Empty);
             private readonly PathIdentityProvider parent;
             private readonly Type[] allTypes;
-            private readonly ImmutableList<(Path,Type[])> paths;
+            private readonly ImmutableList<(Path, Type[])> paths;
 
-            private EntryBuilder(PathIdentityProvider parent, Type[] allTypes, ImmutableList<(Path,Type[])> paths)
+            private EntryBuilder(PathIdentityProvider parent, Type[] allTypes, ImmutableList<(Path, Type[])> paths)
             {
                 this.parent = parent;
                 this.allTypes = allTypes;
@@ -89,7 +89,7 @@ namespace Biz.Morsink.Identity.PathProvider
             public EntryBuilder WithPath(string path, params Type[] types)
             {
                 var p = Path.Parse(path, allTypes[allTypes.Length - 1]);
-                if (p.Arity != types.Length)
+                if (p.Arity != types.Length && (p.Arity > 0 || types.Length != 1))
                     throw new ArgumentException("Number of wildcards does not match arity of identity value.");
                 return new EntryBuilder(parent, allTypes, paths.Add((p, types)));
             }
@@ -104,7 +104,7 @@ namespace Biz.Morsink.Identity.PathProvider
                     parent.matchTree = new Lazy<PathMatchTree>(parent.GetMatchTree);
                 }
             }
-            
+
         }
         private class CreatorForObject : IIdentityCreator<object>
         {
@@ -258,6 +258,8 @@ namespace Biz.Morsink.Identity.PathProvider
             {
                 if (match.Parts.Count == 1)
                     return Create(match.Path.ForType, match.Parts[0]);
+                else if (match.Parts.Count == 0)
+                    return Create(match.Path.ForType, "");
                 else
                     return Create(match.Path.ForType, match.Parts.ToArray());
             }
@@ -315,7 +317,7 @@ namespace Biz.Morsink.Identity.PathProvider
         /// <param name="id"></param>
         /// <returns></returns>
         public string ToPath(IIdentity id)
-            => ToGeneralIdentity(id).Value.ToString();
+            => ToGeneralIdentity(id)?.Value.ToString();
 
     }
 }
