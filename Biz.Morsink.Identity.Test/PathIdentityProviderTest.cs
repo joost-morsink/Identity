@@ -10,11 +10,13 @@ namespace Biz.Morsink.Identity.Test
     public class PathIdentityProviderTest
     {
         private TestPathIdentityProvider pp;
+        private TestPathIdentityProvider cipp;
 
         [TestInitialize]
         public void Init()
         {
-            pp = TestPathIdentityProvider.Instance;
+            pp = TestPathIdentityProvider.CaseSensitive;
+            cipp = TestPathIdentityProvider.CaseInsensitive;
         }
 
         [TestMethod]
@@ -35,6 +37,16 @@ namespace Biz.Morsink.Identity.Test
         public void PathIdProv_HappyParse()
         {
             var tid = pp.Parse("/api/person/123/detail/45");
+            Assert.AreEqual(typeof(Detail), tid.ForType, "PathIdentityProvider should be able to parse 2-ary paths.");
+            Assert.AreEqual(("123", "45"), tid.Value, "The path parts on wildcard positions should be preserved in the underlying identity value.");
+            Assert.AreEqual("45", tid.ComponentValue, "The component value should equal the last wildcard.");
+            Assert.IsNotNull(tid.For<Person>(), "Parent identities should be preserved in n-ary paths.");
+            Assert.AreEqual("123", tid.For<Person>().ComponentValue, "Parent identities' component value should be preserved in n-ary paths.");
+        }
+        [TestMethod]
+        public void PathIdProv_HappyParseCaseInsensitive()
+        {
+            var tid = cipp.Parse("/API/Person/123/deTAIl/45");
             Assert.AreEqual(typeof(Detail), tid.ForType, "PathIdentityProvider should be able to parse 2-ary paths.");
             Assert.AreEqual(("123", "45"), tid.Value, "The path parts on wildcard positions should be preserved in the underlying identity value.");
             Assert.AreEqual("45", tid.ComponentValue, "The component value should equal the last wildcard.");
@@ -82,8 +94,9 @@ namespace Biz.Morsink.Identity.Test
         }
         public class TestPathIdentityProvider : PathIdentityProvider
         {
-            public static TestPathIdentityProvider Instance { get; } = new TestPathIdentityProvider();
-            public TestPathIdentityProvider()
+            public new static TestPathIdentityProvider CaseSensitive { get; } = new TestPathIdentityProvider(true);
+            public new static TestPathIdentityProvider CaseInsensitive { get; } = new TestPathIdentityProvider(false);
+            public TestPathIdentityProvider(bool caseSensitive) : base(caseSensitive)
             {
                 AddEntry("/api/person/*", typeof(Person));
                 AddEntry("/api/person/*/detail/*", typeof(Person), typeof(Detail));
