@@ -21,7 +21,7 @@ interface IIdentityProvider : IEqualityComparer<IIdentity>
 
 The type `T` is always the entity type the identity value is a reference for. 
 The type `K` is an input type for the underlying value.
-An Identity Provider may convert this value to another type, if that is more natural or desireable within the provider's context.
+An Identity Provider may convert this value to another type, if that is more natural or desirable within the provider's context.
 
 ### Create
 The create methods create identity values for a certain type, with a certain underlying value.
@@ -132,6 +132,67 @@ new GenericIdentityProvider<int>().Create<Person, int>(42);
 
 The constructor takes an optional `IDataConverter` instance. 
 If nothing or null is passed the `DataConverter.Default` instance is used.
+
+### PathIdentityProvider
+The `PathIdentityProvider` is a base class for API identity providers.
+It allows for the definition of mappings between entity types and path templates. 
+
+#### Path parsing
+Next to an `IIdentityProvider` implementation, it contains methods to 'parse' a path string to an identity value.
+It can also achieve this through the intermediate `IIdentity<object>` type.
+The following parse signatures are implemented:
+
+```csharp
+IIdentity Parse(string path, bool nullOnFailure = false);
+IIdentity<T> Parse<T>(string path);
+IIdentity Parse(IIdentity<object> objectId, bool nullOnFailure);
+IIdentity<T> Parse<T>(IIdentity<object>);
+```
+
+Because **any** string can always be an identity value for an object, any string can always be converted to an `IIdentity<object>`. 
+When the path should be parsed using a specific type's template, the resulting match can either succeed (returning an `Identity<T>`) or it can fail (in which case an `Identity<object>` can be returned or a `null` value, depending on the static return type and the `nullOnFailure` parameter).
+
+#### Path (re-)construction
+Identity values that are known to the provider should be convertible back to their paths using the configured templates.
+Two method are implemented to do this:
+
+```csharp
+IIdentity<object> ToGeneralIdentity(IIdentity id);
+string ToPath(IIdentity id);
+```
+
+A general `IIdentity` value contains enough information to convert it to an `IIdentity<object>`, so there are no generic variants of these methods. 
+The `Value` of the `IIdentity<object>` is the path, but these methods return `null` if the entity type is not known to the provider.
+
+#### Path templates
+Path templates can be used to match actual path against a pattern. 
+Paths are a series of strings separated by a separator (default '/'), with optionally wildcards ('*'). 
+The general rule is that either a string is a literal string, which needs to be matched or it is a wildcard.
+Wildcards match _any_ string and will produce the value for consumption into an identity value.
+For instance, a path template `/api/person/*/detail/*` will match a path `/api/person/1/detail/1` because all parts match the template. 
+By configuring the provider to produce an identity value of type `IIdentity<Person,Detail>` it will produce a binary identity value with value `("1","1")`.
+
+Paths are case-sensitive at the time of writing. 
+Case sensitivity influences the applicability of some DataConverters from and to byte arrays. 
+A hex converter can be case insensitive, but a base-64 converter is always case sensitive.
+
+Not all paths in a path system refer to actual entity types.
+This means there are some 0-ary paths that need to be mapped as well. 
+The trick is to define a (dummy) class to represent that resource and configure it with a path without wildcards.
+Matching these paths will create 1-ary identity values with an empty string as the underlying value.
+
+### Other implementations
+Other, more specific, implementations of the `AbstractIdentityProvider` or `IIdentityProvider` can be made. 
+However it will need to take a dependency on an external library, making an implementation in the main library impossible.
+
+Some pointers to take into account are:
+* Make a general implementation for a certain technology. 
+  For example, one for SQL Server, one for MongoDB, one for any other data storage system.
+* Derive your domain specific variant from the general one.
+* Try to generate new identity values within the identity provider (and not in the backend storage layer itself).
+  For example when an auto identity column is implemented on the backend storage layer, the sequencing of inserts matters, which impedes scalability.
+  Allocating multiple identity values from a sequence object is preferred, but when this is not possible, you should use `LateIdentity` values.
+  Using uniquely generated identity values like GUIDs or Mongo's ObjectIds is even better, as this does not require any roundtrips to the backend.
 
 ## Free identity values
 Identity values that are not specifcally bound to an identity provider can be constructed using the `FreeIdentity` classes. 

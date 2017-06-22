@@ -2,7 +2,13 @@
 In domain driven design a very important type of object is the _entity_.
 An _entity_ can be uniquely identified by some value. 
 The attribute/property that identifies some entity is called a primary key, and its value we will call an _identity value_.
-Often the type of this value depends partly on the domain model (domain key), partly on some system that stores the entity (technical key).
+Often the type of this value depends on the domain model (domain key), or on some system that stores the entity (technical key).
+
+> When the domain layer does not care about the exact type of identity value, it should not know about its type.
+
+This is the fundamental assumption for the motivation of this library.
+This library is designed to hide these details from the domain layer in a generic and performant way. 
+If you do not care about this principle, you are probably better of using another solution.
 
 ## Identity Values {#idval}
 
@@ -170,9 +176,7 @@ This leads us to divide the information in an identity value in:
   Routing can be based on these values, and these values may be stripped for consumption in a local system after routing.
 
 Local identity values are always split at the end, assuming the component value is at the end, and everything preceding it is the value for the identity value's parent. 
-Infrastructural or _system_ component values are always at the start.
-
-**At the time of this writing there is no support for these kind of component values.**
+Infrastructural or _system_ component values should always be at the start.
 
 For multi-ary identity values we will define the following two terms:
 > **Definition:** The parent of an identity value of T is an identity value of U, where the arity of U is one less than the arity of T. 
