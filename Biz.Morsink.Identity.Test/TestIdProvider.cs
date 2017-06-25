@@ -21,37 +21,39 @@ namespace Biz.Morsink.Identity.Test
 
         [Creator]
         public Identity<Person, int> PersonId(int value)
-            => new Identity<Person, int>(this, value);
+            => Builder.For<Person>().Value(value);
 
         [Creator]
         public Identity<Person, Detail, int, int> DetailId(int p, int d)
-            => new Identity<Person, Detail, int, int>(this, p, d);
+            => Builder.For<Person>().Value(p).For<Detail>().Value(d);
 
         [Creator]
         public Identity<Person, Detail, Sub, int, int, int> SubId(int p, int d, int s)
-            => new Identity<Person, Detail, Sub, int, int, int>(this, p, d, s);
+            => Builder.For<Person>().Value(p).For<Detail>().Value(d).For<Sub>().Value(s);
+
         [Creator]
         public IIdentity<A> AId(int x)
-            => new Identity<A, int>(this, x);
-
+            => Builder.For<A>().Value(x).Id();
         // This method definition does not satisfy the constraints for identity value creation and will not be used by the generic mechanism.
         [Creator]
         public IIdentity BId(int x)
-            => new Identity<B, int>(this, x);
+            => Builder.For<B>().Value(x).Id();
 
         [Creator]
         public IIdentity<C> CId<K>(K value)
         {
+            var b = Builder.For<C>();
+
             if (typeof(K) == typeof(int) || typeof(K) == typeof(long))
-                return new Identity<C, K>(this, value);
+                return b.Value(value).Id();
             else if (GetConverter(typeof(C), true).Convert(value).TryTo(out int v))
-                return new Identity<C, int>(this, v);
+                return b.Value(v).Id();
             else
                 return null;
         }
         [Creator]
         public IIdentity<D> DId(string value)
-            => new Identity<D, string>(this, value);
+            => Builder.For<D>().Value(value).Id();
 
         private int ids = 0;
         [Generator]

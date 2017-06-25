@@ -149,7 +149,13 @@ namespace Biz.Morsink.Identity.PathProvider
                     if (this.entry.AllTypes.Length == 1)
                         return new Identity<T, U>(parent, res.Result);
                     else
-                        return IdentityUtils.Create<T>(parent, entry.AllTypes, converter.Convert(res.Result).To<string[]>());
+                    {
+                        if (!converter.Convert(res.Result).TryTo(out string[] compValues) || compValues.Length != entry.AllTypes.Length)
+                            throw new ArgumentException("The number of component values does not match the arity of the identity value.");
+                        var bld = parent.BuildGeneralIdentity()
+                            .AddRange(entry.AllTypes.Zip(compValues, (t, cv) => (t, cv.GetType(), (object)cv)));
+                        return (IIdentity<T>)bld.Id();
+                    }
                 }
                 else
                     return null;

@@ -5,7 +5,6 @@ using System.Text;
 
 namespace Biz.Morsink.Identity
 {
-
     /// <summary>
     /// Reference implementation for 1-ary indentity values.
     /// </summary>
