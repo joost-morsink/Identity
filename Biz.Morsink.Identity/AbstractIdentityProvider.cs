@@ -212,8 +212,13 @@ namespace Biz.Morsink.Identity
             else
                 return id.MapContainer(res);
         }
-
+        /// <summary>
+        /// Constructs a Builder for this identity provider.
+        /// </summary>
         protected Identity.Builder Builder => this.BuildIdentity();
+        /// <summary>
+        /// Constructs a GeneralBuilder for this identity provider.
+        /// </summary>
         protected Identity.GeneralBuilder GeneralBuilder => this.BuildGeneralIdentity();
         /// <summary>
         /// Contains convenience methods and properties for data conversion pipeline construction.
