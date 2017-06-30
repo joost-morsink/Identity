@@ -78,6 +78,13 @@ namespace Biz.Morsink.Identity
             public Builder<T1, T2, K1> For<T2>()
                 => new Builder<T1, T2, K1>(identity);
             /// <summary>
+            /// Creates a GeneralBuilder for a binary identity value.
+            /// </summary>
+            /// <param name="t">The entity type of the second component.</param>
+            /// <returns>A builder for the new context.</returns>
+            public GeneralBuilder.Odd For(Type t)
+                => new GeneralBuilder(identity.Provider).Add(typeof(T1), typeof(K1), identity.ComponentValue).For(t);
+            /// <summary>
             /// Constructs the unary identity value.
             /// </summary>
             /// <returns>A unary identity value.</returns>
@@ -135,6 +142,16 @@ namespace Biz.Morsink.Identity
             /// <returns>A builder for the new context.</returns>
             public Builder<T1, T2, T3, K1, K2> For<T3>()
                 => new Builder<T1, T2, T3, K1, K2>(identity);
+            /// <summary>
+            /// Creates a GeneralBuilder for a 3-ary identity value.
+            /// </summary>
+            /// <param name="t">The entity type of the third component.</param>
+            /// <returns>A builder for the new context.</returns>
+            public GeneralBuilder.Odd For(Type t)
+                => new GeneralBuilder(identity.Provider)
+                    .Add(typeof(T1), typeof(K1), identity.Parent.ComponentValue)
+                    .Add(typeof(T2), typeof(K2), identity.ComponentValue)
+                    .For(t);
             /// <summary>
             /// Constructs the binary identity value.
             /// </summary>
@@ -197,6 +214,17 @@ namespace Biz.Morsink.Identity
             /// <returns>A builder for the new context.</returns>
             public Builder<T1, T2, T3, T4, K1, K2, K3> For<T4>()
                 => new Builder<T1, T2, T3, T4, K1, K2, K3>(identity);
+            /// <summary>
+            /// Creates a GeneralBuilder for a 4-ary identity value.
+            /// </summary>
+            /// <param name="t">The entity type of the fourth component.</param>
+            /// <returns>A builder for the new context.</returns>
+            public GeneralBuilder.Odd For(Type t)
+                => new GeneralBuilder(identity.Provider)
+                    .Add(typeof(T1), typeof(K1), identity.Parent.Parent.ComponentValue)
+                    .Add(typeof(T2), typeof(K2), identity.Parent.ComponentValue)
+                    .Add(typeof(T3), typeof(K3), identity.ComponentValue)
+                    .For(t);
             /// <summary>
             /// Constructs the 3-ary identity value.
             /// </summary>
@@ -263,6 +291,18 @@ namespace Biz.Morsink.Identity
             /// <returns>A builder for the new context.</returns>
             public Builder<T1, T2, T3, T4, T5, K1, K2, K3, K4> For<T5>()
                 => new Builder<T1, T2, T3, T4, T5, K1, K2, K3, K4>(identity);
+            /// <summary>
+            /// Creates a GeneralBuilder for a 5-ary identity value.
+            /// </summary>
+            /// <param name="t">The entity type of the fifth component.</param>
+            /// <returns>A builder for the new context.</returns>
+            public GeneralBuilder.Odd For(Type t)
+                => new GeneralBuilder(identity.Provider)
+                    .Add(typeof(T1), typeof(K1), identity.Parent.Parent.Parent.ComponentValue)
+                    .Add(typeof(T2), typeof(K2), identity.Parent.Parent.ComponentValue)
+                    .Add(typeof(T3), typeof(K3), identity.Parent.ComponentValue)
+                    .Add(typeof(T4), typeof(K4), identity.ComponentValue)
+                    .For(t);
             /// <summary>
             /// Constructs the 4-ary identity value.
             /// </summary>
