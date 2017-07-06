@@ -1,4 +1,5 @@
-﻿using Biz.Morsink.Identity.Utils;
+﻿using Biz.Morsink.DataConvert;
+using Biz.Morsink.Identity.Utils;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -54,6 +55,23 @@ namespace Biz.Morsink.Identity
             }
             else
                 return false;
+        }
+
+        public bool Equals(IIdentity other)
+        {
+            var typed = other as IIdentity<T>;
+            return Equals(typed);
+        }
+
+        public bool Equals(IIdentity<T> other)
+        {
+            var typed = other as LateIdentity<T>;
+            if (ReferenceEquals(this, other))
+                return true;
+            else if (!IsAvailable)
+                return false;
+            else
+                return Provider.Translate(this).Equals(Provider.Translate(other));
         }
     }
     /// <summary>
@@ -113,5 +131,25 @@ namespace Biz.Morsink.Identity
 
         bool ILateIdentity.Resolve(object value)
             => Resolve((K)value);
+
+        public override int GetHashCode()
+            => throw new NotSupportedException("Late identities cannot be stored in keyed collections.");
+        public override bool Equals(object obj) => Equals(obj as IIdentity<T>);
+        public bool Equals(IIdentity other) => Equals(other as IIdentity<T>);
+
+        public bool Equals(IIdentity<T> other)
+        {
+            if (other == null)
+                return false;
+            if (ReferenceEquals(this, other))
+                return true;
+            if (!IsAvailable)
+                return false;
+
+            other = Provider.Translate(other);
+            var typed = other as LateIdentity<T, K>;
+            var otherVal = typed != null ? typed.Value : Provider.GetConverter(typeof(T), true).Convert(other.Value).To<K>();
+            return Provider.GetUnderlyingEqualityComparer<K>().Equals(Value, otherVal);
+        }
     }
 }

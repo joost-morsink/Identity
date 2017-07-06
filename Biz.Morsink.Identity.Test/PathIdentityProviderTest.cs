@@ -2,6 +2,7 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace Biz.Morsink.Identity.Test
@@ -10,11 +11,13 @@ namespace Biz.Morsink.Identity.Test
     public class PathIdentityProviderTest
     {
         private TestPathIdentityProvider pp;
+        private TestPathIdentityProvider cipp;
 
         [TestInitialize]
         public void Init()
         {
-            pp = TestPathIdentityProvider.Instance;
+            pp = TestPathIdentityProvider.CaseSensitive;
+            cipp = TestPathIdentityProvider.CaseInsensitive;
         }
 
         [TestMethod]
@@ -40,6 +43,31 @@ namespace Biz.Morsink.Identity.Test
             Assert.AreEqual("45", tid.ComponentValue, "The component value should equal the last wildcard.");
             Assert.IsNotNull(tid.For<Person>(), "Parent identities should be preserved in n-ary paths.");
             Assert.AreEqual("123", tid.For<Person>().ComponentValue, "Parent identities' component value should be preserved in n-ary paths.");
+        }
+        [TestMethod]
+        public void PathIdProv_HappyParseCaseInsensitive()
+        {
+            var tid = cipp.Parse("/API/Person/123/deTAIl/45");
+            Assert.AreEqual(typeof(Detail), tid.ForType, "PathIdentityProvider should be able to parse 2-ary paths.");
+            Assert.AreEqual(("123", "45"), tid.Value, "The path parts on wildcard positions should be preserved in the underlying identity value.");
+            Assert.AreEqual("45", tid.ComponentValue, "The component value should equal the last wildcard.");
+            Assert.IsNotNull(tid.For<Person>(), "Parent identities should be preserved in n-ary paths.");
+            Assert.AreEqual("123", tid.For<Person>().ComponentValue, "Parent identities' component value should be preserved in n-ary paths.");
+        }
+        [TestMethod]
+        public void PathIdProv_HappyCaseInsensitiveEquality()
+        {
+            var id1 = cipp.Parse("/api/person/Joost/detail/xx");
+            var id2 = cipp.Parse("/API/Person/JOOST/detail/Xx");
+            var id3 = cipp.Parse("/Api/Person/Jöost/detaIL/xx");
+            var id4 = cipp.Parse("/Api/Person/JÖost/detaIL/xx");
+            Assert.IsTrue(new[] { id1, id2, id3, id4 }.All(id => id.ForType == typeof(Detail)), "Case insensitive parsing of paths should lead to the same entity type.");
+            Assert.IsTrue(id1.Equals(id2), "Case insensitive providers should ignore casing of identity component values.");
+            Assert.AreNotEqual(id1.ComponentValue, id2.ComponentValue, "Different actual component values should be preserved.");
+            Assert.AreNotEqual(id1.For<Person>().ComponentValue, id2.For<Person>().ComponentValue, "Different actual parent component values should be preserved.");
+            Assert.AreEqual(id1, id2, "Non generic equality should adhere to the generic equality.");
+            Assert.AreNotEqual(id1, id3, "Case insensitivy should treat diacritics as differences.");
+            Assert.AreEqual(id3, id4, "Case insensitivity should ignore casing of characters with the same diacritics.");
         }
         [TestMethod]
         public void PathIdProv_HappyToPath()
@@ -82,8 +110,9 @@ namespace Biz.Morsink.Identity.Test
         }
         public class TestPathIdentityProvider : PathIdentityProvider
         {
-            public static TestPathIdentityProvider Instance { get; } = new TestPathIdentityProvider();
-            public TestPathIdentityProvider()
+            public new static TestPathIdentityProvider CaseSensitive { get; } = new TestPathIdentityProvider(true);
+            public new static TestPathIdentityProvider CaseInsensitive { get; } = new TestPathIdentityProvider(false);
+            public TestPathIdentityProvider(bool caseSensitive) : base(caseSensitive)
             {
                 AddEntry("/api/person/*", typeof(Person));
                 AddEntry("/api/person/*/detail/*", typeof(Person), typeof(Detail));

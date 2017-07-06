@@ -38,8 +38,8 @@ namespace Biz.Morsink.Identity.Test
         [TestMethod]
         public void Path_DoubleStar()
         {
-            var p = Path.Parse("/api/person/*/detail/*", null);
-            var q = Path.Parse("/api/person/123/detail/456", null);
+            var p = Path.Parse("/api/person/*/detail/*");
+            var q = Path.Parse("/api/person/123/detail/456");
             var m = p.Match(q);
             Assert.IsTrue(m.IsSuccessful, "Two wildcards should each match any value.");
             Assert.AreEqual(2, m.Parts.Count, "Two wildcards should result in a binary match.");
@@ -50,17 +50,35 @@ namespace Biz.Morsink.Identity.Test
         {
             var ps = new[]
             {
-                Path.Parse("/api/person/*", typeof(Person)),
-                Path.Parse("/api/person/*/detail/*", typeof(Detail)),
-                Path.Parse("/api/person/*/detail/*/*", typeof(Sub)),
-                Path.Parse("/api/a/*",typeof(A))
+                Path.CaseSensitive("/api/person/*", typeof(Person)),
+                Path.CaseSensitive("/api/person/*/detail/*", typeof(Detail)),
+                Path.CaseSensitive("/api/person/*/detail/*/*", typeof(Sub)),
+                Path.CaseSensitive("/api/a/*",typeof(A))
             };
-            var tree = new PathMatchTree(ps);
+            var tree = PathMatchTree.CaseSensitive(ps);
             var m = tree.Walk(Path.Parse("/api/person/13/detail/42", null));
             Assert.IsTrue(m.IsSuccessful, "Walking a matchtree path on a 'known' path should succeed.");
             Assert.AreEqual(typeof(Detail), m.Path.ForType, "Walking a matchtree path on a 'known' path should find the correct path.");
             Assert.AreEqual(2, m.Parts.Count, "Two wildcards should result in a binary match.");
             Assert.IsTrue(m.Parts[0] == "13" && m.Parts[1] == "42", "The matched wildcard parts should match those in the path string in the same order.");
         }
+        [TestMethod]
+        public void PathTree_CaseInsensitive()
+        {
+            var ps = new[]
+            {
+                Path.CaseInsensitive("/api/person/*", typeof(Person)),
+                Path.CaseInsensitive("/api/person/*/detail/*", typeof(Detail)),
+                Path.CaseInsensitive("/api/person/*/detail/*/*", typeof(Sub)),
+                Path.CaseInsensitive("/api/a/*",typeof(A))
+            };
+            var tree = PathMatchTree.CaseInsensitive(ps);
+            var m = tree.Walk(Path.CaseInsensitive("/Api/Person/13/Detail/42", null));
+            Assert.IsTrue(m.IsSuccessful, "Walking a matchtree path on a 'known' path should succeed.");
+            Assert.AreEqual(typeof(Detail), m.Path.ForType, "Walking a matchtree path on a 'known' path should find the correct path.");
+            Assert.AreEqual(2, m.Parts.Count, "Two wildcards should result in a binary match.");
+            Assert.IsTrue(m.Parts[0] == "13" && m.Parts[1] == "42", "The matched wildcard parts should match those in the path string in the same order.");
+        }
+
     }
 }

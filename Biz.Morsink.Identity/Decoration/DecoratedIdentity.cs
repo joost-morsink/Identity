@@ -64,6 +64,14 @@ namespace Biz.Morsink.Identity
         /// The Arity is the Identity's Arity.
         /// </summary>
         public int Arity => Identity.Arity;
+        
+        public override int GetHashCode()
+            => Identity.GetHashCode();
+        public override bool Equals(object obj) => Equals(obj as IIdentity<T>);
+        public bool Equals(IIdentity other) => Equals(other as IIdentity<T>);
+
+        public bool Equals(IIdentity<T> other)
+            => Identity.Equals(other);
 
         /// <summary>
         /// Maps an identity value into the current decoration.

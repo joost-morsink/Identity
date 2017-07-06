@@ -8,6 +8,8 @@ The interface definition is as follows:
 ```csharp
 interface IIdentityProvider : IEqualityComparer<IIdentity>
 {
+    Type GetUnderlyingType(Type entityType);
+    IEqualityComparer<T> GetUnderlyingEqualityComparer<T>();
     IIdentity Create<K>(Type forType, K value);
     IIdentity<T> Create<T, K>(K value);
     bool SupportsNewIdentities { get; }
@@ -22,6 +24,12 @@ interface IIdentityProvider : IEqualityComparer<IIdentity>
 The type `T` is always the entity type the identity value is a reference for. 
 The type `K` is an input type for the underlying value.
 An Identity Provider may convert this value to another type, if that is more natural or desirable within the provider's context.
+
+### Underlying types
+An underlying type is the type of the actual value representing the identity of the entity.
+For each entity type a provider should be able to produce an underlying value type. 
+When an underlying value type is known, the provider should be able to supply an `IEqualityComparer<T>` instance for it. 
+This is the way case insensitivity can be supported on the provider level, but other specific ways of determining equality may be supported using these methods.
 
 ### Create
 The create methods create identity values for a certain type, with a certain underlying value.
@@ -172,9 +180,11 @@ Wildcards match _any_ string and will produce the value for consumption into an 
 For instance, a path template `/api/person/*/detail/*` will match a path `/api/person/1/detail/1` because all parts match the template. 
 By configuring the provider to produce an identity value of type `IIdentity<Person,Detail>` it will produce a binary identity value with value `("1","1")`.
 
-Paths are case-sensitive at the time of writing. 
+Paths can be made case sensitive or case insensitive at the provider level. 
 Case sensitivity influences the applicability of some DataConverters from and to byte arrays. 
-A hex converter can be case insensitive, but a base-64 converter is always case sensitive.
+A hex converter could be case insensitive, but a base-64 converter is always case sensitive.
+A `PathIdentityProvider` implementation should be configured to respect the semantics of the underlying values it provides.
+Although an `IIdentityProvider` implementation could be written that is case sensitive in some parts and case insensitive in other parts, it is probably too confusing for users.
 
 Not all paths in a path system refer to actual entity types.
 This means there are some 0-ary paths that need to be mapped as well. 
@@ -195,6 +205,6 @@ Some pointers to take into account are:
   Using uniquely generated identity values like GUIDs or Mongo's ObjectIds is even better, as this does not require any roundtrips to the backend.
 
 ## Free identity values
-Identity values that are not specifcally bound to an identity provider can be constructed using the `FreeIdentity` classes. 
+Identity values that are not specifically bound to an identity provider can be constructed using the `FreeIdentity` classes. 
 `FreeIdentity` instances have a `null` Provider reference and therefore cannot influence data type conversion.
 The use of free identities should be very limited.

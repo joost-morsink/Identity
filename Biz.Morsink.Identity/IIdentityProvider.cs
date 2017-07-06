@@ -19,6 +19,12 @@ namespace Biz.Morsink.Identity
         /// <returns>The type of the underlying identity values.</returns>
         Type GetUnderlyingType(Type forType);
         /// <summary>
+        /// This method should return an IEqualityComparer&lt;T&gt; instance for a certain underlying type.
+        /// </summary>
+        /// <typeparam name="T">The type of the underlying type.</typeparam>
+        /// <returns>An equality comparer for the specified type.</returns>
+        IEqualityComparer<T> GetUnderlyingEqualityComparer<T>();
+        /// <summary>
         /// Tries to translate some identity value to one that is owned by this identity provider.
         /// </summary>
         /// <param name="id">The externally owned identity value.</param>

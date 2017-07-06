@@ -15,30 +15,52 @@ namespace Biz.Morsink.Identity.PathProvider
         /// Parses a string into a Path instance.
         /// </summary>
         /// <param name="pathString">The path string to parse.</param>
+        /// <param name="equalityComparer">The equality comparer to use when comparing parts of paths.</param>
         /// <param name="forType">The entity type the path belongs to.</param>
         /// <param name="separator">An optional separator character, default '/'.</param>
         /// <returns>A parsed Path instance.</returns>
-        public static Path Parse(string pathString, Type forType = null, char separator = '/')
-            => new Path(pathString.Split(separator), forType);
+        public static Path Parse(string pathString, IEqualityComparer<string> equalityComparer = null, Type forType = null, char separator = '/')
+            => new Path(pathString.Split(separator), forType, equalityComparer);
+        /// <summary>
+        /// Parses a string into a case sensitive Path instance.
+        /// </summary>
+        /// <param name="pathString">The path string to parse.</param>
+        /// <param name="forType">The entity type the path belongs to.</param>
+        /// <param name="separator">An optional separator character, default '/'.</param>
+        /// <returns>A parsed Path instance.</returns>
+        public static Path CaseSensitive(string pathString, Type forType = null, char separator = '/')
+            => Parse(pathString, null, forType, separator);
+        /// <summary>
+        /// Parses a string into a case insensitive Path instance.
+        /// </summary>
+        /// <param name="pathString">The path string to parse.</param>
+        /// <param name="forType">The entity type the path belongs to.</param>
+        /// <param name="separator">An optional separator character, default '/'.</param>
+        /// <returns>A parsed Path instance.</returns>
+        public static Path CaseInsensitive(string pathString, Type forType = null, char separator = '/')
+            => Parse(pathString, CaseInsensitiveEqualityComparer.Instance, forType, separator);
         /// <summary>
         /// Constructor.
         /// </summary>
         /// <param name="parts">All the parts of the path.</param>
         /// <param name="forType">The entity type the path belongs to.</param>
-        public Path(IEnumerable<string> parts, Type forType)
+        public Path(IEnumerable<string> parts, Type forType, IEqualityComparer<string> equalityComparer)
         {
             this.parts = parts.ToArray();
+            this.equalityComparer = equalityComparer ?? EqualityComparer<string>.Default;
             skip = 0;
             ForType = forType;
         }
-        private Path(string[] parts, int skip, Type forType)
+        private Path(string[] parts, int skip, Type forType, IEqualityComparer<string> equalityComparer)
         {
             this.parts = parts;
+            this.equalityComparer = equalityComparer ?? EqualityComparer<string>.Default;
             this.skip = skip;
             ForType = forType;
         }
         private string[] parts;
         private int skip;
+        private readonly IEqualityComparer<string> equalityComparer;
 
         /// <summary>
         /// Gets the number of path parts in this Path.
@@ -47,7 +69,14 @@ namespace Biz.Morsink.Identity.PathProvider
         /// <summary>
         /// Gets the number of wildcard parts in this Path.
         /// </summary>
-        public int Arity => parts.Where(p => p == "*").Count();
+        public int Arity
+        {
+            get
+            {
+                var eqComp = equalityComparer;
+                return parts.Where(p => eqComp.Equals(p, "*")).Count();
+            }
+        }
         /// <summary>
         /// Gets the entity type this Path is for.
         /// </summary>
@@ -64,7 +93,7 @@ namespace Biz.Morsink.Identity.PathProvider
         /// <param name="num">The number of parts to skip.</param>
         /// <returns>A shorter Path.</returns>
         public Path Skip(int num = 1)
-            => new Path(parts, skip + num, ForType);
+            => new Path(parts, skip + num, ForType, equalityComparer);
         /// <summary>
         /// Tries to match another Path to this one.
         /// </summary>
@@ -77,9 +106,9 @@ namespace Biz.Morsink.Identity.PathProvider
             var result = new List<string>();
             for (int i = 0; i < Count; i++)
             {
-                if (this[i] == "*")
+                if (equalityComparer.Equals(this[i], "*"))
                     result.Add(other[i]);
-                else if (this[i] != other[i])
+                else if (!equalityComparer.Equals(this[i], other[i]))
                     return default(Match);
             }
             return new Match(this, result.ToArray());
@@ -89,7 +118,7 @@ namespace Biz.Morsink.Identity.PathProvider
         /// </summary>
         /// <returns>A Path.</returns>
         public Path GetFullPath()
-            => new Path(parts, 0, ForType);
+            => new Path(parts, 0, ForType, equalityComparer);
         private IEnumerable<string> fillHelper(IEnumerable<string> stars)
         {
             var s = stars.ToArray();
@@ -108,7 +137,7 @@ namespace Biz.Morsink.Identity.PathProvider
         /// <param name="wildcards">The values for the wildcards</param>
         /// <returns>A new Path</returns>
         public Path FillWildcards(IEnumerable<string> wildcards)
-            => new Path(fillHelper(wildcards), ForType);
+            => new Path(fillHelper(wildcards), ForType, equalityComparer);
         /// <summary>
         /// Gets a string representation for the Path.
         /// </summary>

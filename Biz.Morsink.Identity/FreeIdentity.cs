@@ -125,5 +125,25 @@ namespace Biz.Morsink.Identity
         /// If there is no parent, the arity is 1.
         /// </summary>
         public int Arity => 1 + (Parent?.Arity ?? 0);
+
+        public override int GetHashCode()
+            => ForType.GetHashCode()
+                ^ (Parent == null
+                    ? Provider.GetUnderlyingEqualityComparer<K>().GetHashCode(ComponentValue)
+                    : Provider.GetUnderlyingEqualityComparer<object>().GetHashCode(Value));
+        public override bool Equals(object obj) => Equals(obj as IIdentity<T>);
+        public bool Equals(IIdentity other) => Equals(other as IIdentity<T>);
+
+        public bool Equals(IIdentity<T> other)
+        {
+            if (other == null)
+                return false;
+            else if (other.Provider != null)
+                return other.Equals(this);
+            else if (Arity == 1)
+                return EqualityComparer<K>.Default.Equals(ComponentValue, DataConverter.Default.Convert(other.Value).To<K>());
+            else
+                return Value.Equals(other.Value);
+        }
     }
 }

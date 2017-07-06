@@ -16,8 +16,8 @@ namespace Biz.Morsink.Identity.PathProvider
         #region Helper classes
         private class Entry
         {
-            public Entry(Type type, Type[] allTypes, params string[] paths)
-                : this(type, allTypes, paths.Select(path => Path.Parse(path, type)))
+            public Entry(IEqualityComparer<string> equalityComparer, Type type, Type[] allTypes, params string[] paths)
+                : this(type, allTypes, paths.Select(path => Path.Parse(path, equalityComparer, type)))
             { }
             public Entry(Type type, Type[] allTypes, IEnumerable<Path> paths)
             {
@@ -88,7 +88,7 @@ namespace Biz.Morsink.Identity.PathProvider
             /// <returns>A new EntryBuilder containing the specified path.</returns>
             public EntryBuilder WithPath(string path, params Type[] types)
             {
-                var p = Path.Parse(path, allTypes[allTypes.Length - 1]);
+                var p = Path.Parse(path, parent.equalityComparer, allTypes[allTypes.Length - 1]);
                 if (p.Arity != types.Length && (p.Arity > 0 || types.Length != 1))
                     throw new ArgumentException("Number of wildcards does not match arity of identity value.");
                 return new EntryBuilder(parent, allTypes, paths.Add((p, types)));
@@ -168,17 +168,39 @@ namespace Biz.Morsink.Identity.PathProvider
 
         private Dictionary<Type, Entry> entries;
         private Lazy<PathMatchTree> matchTree;
+        private readonly IEqualityComparer<string> equalityComparer;
+
         private PathMatchTree GetMatchTree()
-            => new PathMatchTree(entries.SelectMany(e => e.Value.Paths));
+            => new PathMatchTree(equalityComparer, entries.SelectMany(e => e.Value.Paths));
+
+        /// <summary>
+        /// Creates a PathIdentityProvider with case sensitive paths.
+        /// </summary>
+        public static PathIdentityProvider CaseSensitive() => new PathIdentityProvider();
+        /// <summary>
+        /// Creates a PathIdentityProvider with case insensitive paths.
+        /// </summary>
+        public static PathIdentityProvider CaseInsensitive() => new PathIdentityProvider(CaseInsensitiveEqualityComparer.Instance);
 
         /// <summary>
         /// Constructor.
         /// </summary>
-        public PathIdentityProvider()
+        /// <param name="caseSensitive">True if the paths are to be considered case sensitive.</param>
+        public PathIdentityProvider(bool caseSensitive)
+            : this(caseSensitive ? (IEqualityComparer<string>)EqualityComparer<string>.Default : CaseInsensitiveEqualityComparer.Instance)
+        { }
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        public PathIdentityProvider(IEqualityComparer<string> equalityComparer = null)
         {
+            if (equalityComparer != null)
+                comparers.Set(equalityComparer);
             entries = new Dictionary<Type, Entry>();
             matchTree = new Lazy<PathMatchTree>(GetMatchTree);
+            this.equalityComparer = equalityComparer ?? EqualityComparer<string>.Default;
         }
+
         /// <summary>
         /// Add an entity type entry into this providers registry.
         /// </summary>
