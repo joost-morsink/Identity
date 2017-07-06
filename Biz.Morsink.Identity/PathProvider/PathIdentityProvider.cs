@@ -170,11 +170,11 @@ namespace Biz.Morsink.Identity.PathProvider
         /// <summary>
         /// Creates a PathIdentityProvider with case sensitive paths.
         /// </summary>
-        public static PathIdentityProvider CaseSensitive => new PathIdentityProvider();
+        public static PathIdentityProvider CaseSensitive() => new PathIdentityProvider();
         /// <summary>
         /// Creates a PathIdentityProvider with case insensitive paths.
         /// </summary>
-        public static PathIdentityProvider CaseInsensitive => new PathIdentityProvider(CaseInsensitiveEqualityComparer.Instance);
+        public static PathIdentityProvider CaseInsensitive() => new PathIdentityProvider(CaseInsensitiveEqualityComparer.Instance);
 
         /// <summary>
         /// Constructor.
