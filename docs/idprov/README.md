@@ -172,9 +172,10 @@ Wildcards match _any_ string and will produce the value for consumption into an 
 For instance, a path template `/api/person/*/detail/*` will match a path `/api/person/1/detail/1` because all parts match the template. 
 By configuring the provider to produce an identity value of type `IIdentity<Person,Detail>` it will produce a binary identity value with value `("1","1")`.
 
-Paths are case-sensitive at the time of writing. 
+Paths can be made case sensitive or case insensitive at the provider level. 
 Case sensitivity influences the applicability of some DataConverters from and to byte arrays. 
-A hex converter can be case insensitive, but a base-64 converter is always case sensitive.
+A hex converter could be case insensitive, but a base-64 converter is always case sensitive.
+A `PathIdentityProvider` implementation should be configured to respect the semantics of the underlying values it provides.
 
 Not all paths in a path system refer to actual entity types.
 This means there are some 0-ary paths that need to be mapped as well. 
@@ -195,6 +196,6 @@ Some pointers to take into account are:
   Using uniquely generated identity values like GUIDs or Mongo's ObjectIds is even better, as this does not require any roundtrips to the backend.
 
 ## Free identity values
-Identity values that are not specifcally bound to an identity provider can be constructed using the `FreeIdentity` classes. 
+Identity values that are not specifically bound to an identity provider can be constructed using the `FreeIdentity` classes. 
 `FreeIdentity` instances have a `null` Provider reference and therefore cannot influence data type conversion.
 The use of free identities should be very limited.
