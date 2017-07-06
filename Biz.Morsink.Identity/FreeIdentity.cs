@@ -71,7 +71,7 @@ namespace Biz.Morsink.Identity
     /// </summary>
     /// <typeparam name="T">The entity type the identity value will refer to.</typeparam>
     /// <typeparam name="K">The type of the underlying component value for this identity value.</typeparam>
-    public class FreeIdentity<T, K> : IMultiaryIdentity<T>
+    public class FreeIdentity<T, K> : IMultiaryIdentity<T>, IIdentityComponentValue<K>
     {
         /// <summary>
         /// Constructor.
@@ -136,14 +136,25 @@ namespace Biz.Morsink.Identity
 
         public bool Equals(IIdentity<T> other)
         {
-            if (other == null)
+            if (other == null) // An actual identity value never equals a null.
                 return false;
-            else if (other.Provider != null)
+            else if (other.Provider != null) // If the other identity value has a provider, its context takes precedence over defaults for FreeIdentity.
                 return other.Equals(this);
-            else if (Arity == 1)
-                return EqualityComparer<K>.Default.Equals(ComponentValue, DataConverter.Default.Convert(other.Value).To<K>());
+            else if (Arity == 1) // If the arity is exactly one, it suffices to compare ComponentValues.
+            {
+                var typed = other as IIdentityComponentValue<K>; // Try typed interface to avoid conversion.
+                return EqualityComparer<K>.Default.Equals(ComponentValue, typed != null ? typed.ComponentValue : DataConverter.Default.Convert(other.Value).To<K>());
+            }
             else
-                return Value.Equals(other.Value);
+            {
+                var typed = other as IIdentityComponentValue<K>; // Try typed interface to avoid conversion.
+                var multi = other as IMultiaryIdentity; // Other should be a multi-ary identity value, because parents need to be compared.
+                if (typed != null && multi != null)
+                    return EqualityComparer<K>.Default.Equals(ComponentValue, typed.ComponentValue)
+                        && Parent.Equals(multi.Parent);
+                else // Fallback to default object equality.
+                    return Value.Equals(other.Value);
+            }
         }
     }
 }

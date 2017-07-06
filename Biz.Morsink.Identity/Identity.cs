@@ -11,7 +11,8 @@ namespace Biz.Morsink.Identity
     /// </summary>
     /// <typeparam name="Type1">The type of object an instance is an identity value for.</typeparam>
     /// <typeparam name="Key1">The type of the identity value.</typeparam>
-    public class Identity<Type1, Key1> : IIdentity<Type1>
+    public class Identity<Type1, Key1>
+        : IIdentity<Type1>, IIdentityValue<Key1>, IIdentityComponentValue<Key1>
     {
         /// <summary>
         /// Constructor.
@@ -67,8 +68,15 @@ namespace Biz.Morsink.Identity
             if (other == null)
                 return false;
             other = Provider.Translate(other);
-            var typed = other as Identity<Type1, Key1>;
-            var otherVal = typed != null ? typed.Value : Provider.GetConverter(typeof(Type1), true).Convert(other.Value).To<Key1>();
+            Key1 otherVal;
+            var typed = other as Identity<Type1, Key1>; // Try same class: cheaper on performance
+            if (typed != null)    
+                otherVal = typed.Value;
+            else
+            {
+                var ityped = other as IIdentityValue<Key1>; // Try typed interface to avoid conversion
+                otherVal = ityped != null ? ityped.Value : Provider.GetConverter(typeof(Type1), true).Convert(other.Value).To<Key1>();
+            }
             return Provider.GetUnderlyingEqualityComparer<Key1>().Equals(Value, otherVal);
         }
     }
@@ -79,7 +87,8 @@ namespace Biz.Morsink.Identity
     /// <typeparam name="Type2">The type of object an instance is primarily an identity value for.</typeparam>
     /// <typeparam name="Key1">The type of the identity component value corresponding to Type1.</typeparam>
     /// <typeparam name="Key2">The type of the identity component value corresponding to Type2.</typeparam>
-    public class Identity<Type1, Type2, Key1, Key2> : IIdentity<Type1, Type2>
+    public class Identity<Type1, Type2, Key1, Key2>
+        : IIdentity<Type1, Type2>, IIdentityValue<(Key1, Key2)>, IIdentityComponentValue<Key2>
     {
         /// <summary>
         /// Constructor.
@@ -161,8 +170,16 @@ namespace Biz.Morsink.Identity
             if (other == null)
                 return false;
             other = Provider.Translate(other);
-            var typed = other as Identity<Type1, Type2, Key1, Key2>;
-            var otherVal = typed != null ? typed.Value : Provider.GetConverter(typeof(Type2), true).Convert(other.Value).To<(Key1, Key2)>();
+
+            (Key1, Key2) otherVal;
+            var typed = other as Identity<Type1, Type2, Key1, Key2>; // Try same class: cheaper on performance
+            if (typed != null)
+                otherVal = typed.Value;
+            else
+            {
+                var ityped = other as IIdentityValue<(Key1, Key2)>; // Try typed interface to avoid conversion
+                otherVal = ityped != null ? ityped.Value : Provider.GetConverter(typeof(Type2), true).Convert(other.Value).To<(Key1, Key2)>();
+            }
             return Provider.GetUnderlyingEqualityComparer<(Key1, Key2)>().Equals(Value, otherVal);
         }
     }
@@ -175,7 +192,8 @@ namespace Biz.Morsink.Identity
     /// <typeparam name="Key1">The type of the identity component value corresponding to Type1.</typeparam>
     /// <typeparam name="Key2">The type of the identity component value corresponding to Type2.</typeparam>
     /// <typeparam name="Key3">The type of the identity component value corresponding to Type3.</typeparam>
-    public class Identity<Type1, Type2, Type3, Key1, Key2, Key3> : IIdentity<Type1, Type2, Type3>
+    public class Identity<Type1, Type2, Type3, Key1, Key2, Key3>
+        : IIdentity<Type1, Type2, Type3>, IIdentityValue<(Key1, Key2, Key3)>, IIdentityComponentValue<Key3>
     {
         /// <summary>
         /// Constructor.
@@ -260,8 +278,15 @@ namespace Biz.Morsink.Identity
             if (other == null)
                 return false;
             other = Provider.Translate(other);
-            var typed = other as Identity<Type1, Type2, Type3, Key1, Key2, Key3>;
-            var otherVal = typed != null ? typed.Value : Provider.GetConverter(typeof(Type3), true).Convert(other.Value).To<(Key1, Key2, Key3)>();
+            (Key1, Key2, Key3) otherVal;
+            var typed = other as Identity<Type1, Type2, Type3, Key1, Key2, Key3>; // Try same class: cheaper on performance
+            if (typed != null)
+                otherVal = typed.Value;
+            else
+            {
+                var ityped = other as IIdentityValue<(Key1, Key2, Key3)>; // Try typed interface to avoid conversion
+                otherVal = ityped != null ? ityped.Value : Provider.GetConverter(typeof(Type3), true).Convert(other.Value).To<(Key1, Key2, Key3)>();
+            }
             return Provider.GetUnderlyingEqualityComparer<(Key1, Key2, Key3)>().Equals(Value, otherVal);
         }
     }
@@ -277,7 +302,8 @@ namespace Biz.Morsink.Identity
     /// <typeparam name="Key2">The type of the identity component value corresponding to Type2.</typeparam>
     /// <typeparam name="Key3">The type of the identity component value corresponding to Type3.</typeparam>
     /// <typeparam name="Key4">The type of the identity component value corresponding to Type4.</typeparam>
-    public class Identity<Type1, Type2, Type3, Type4, Key1, Key2, Key3, Key4> : IIdentity<Type1, Type2, Type3, Type4>
+    public class Identity<Type1, Type2, Type3, Type4, Key1, Key2, Key3, Key4>
+        : IIdentity<Type1, Type2, Type3, Type4>, IIdentityValue<(Key1, Key2, Key3, Key4)>, IIdentityComponentValue<Key4>
     {
         /// <summary>
         /// Constructor.
@@ -364,8 +390,15 @@ namespace Biz.Morsink.Identity
             if (other == null)
                 return false;
             other = Provider.Translate(other);
-            var typed = other as Identity<Type1, Type2, Type3, Type4, Key1, Key2, Key3, Key4>;
-            var otherVal = typed != null ? typed.Value : Provider.GetConverter(typeof(Type4), true).Convert(other.Value).To<(Key1, Key2, Key3, Key4)>();
+            (Key1, Key2, Key3, Key4) otherVal;
+            var typed = other as Identity<Type1, Type2, Type3, Type4, Key1, Key2, Key3, Key4>; // Try same class: cheaper on performance
+            if (typed != null)
+                otherVal = typed.Value;
+            else
+            {
+                var ityped = other as IIdentityValue<(Key1, Key2, Key3, Key4)>; // Try typed interface to avoid conversion
+                otherVal = ityped != null ? ityped.Value : Provider.GetConverter(typeof(Type4), true).Convert(other.Value).To<(Key1, Key2, Key3, Key4)>();
+            }
             return Provider.GetUnderlyingEqualityComparer<(Key1, Key2, Key3, Key4)>().Equals(Value, otherVal);
         }
     }
@@ -382,7 +415,8 @@ namespace Biz.Morsink.Identity
     /// <typeparam name="Key3">The type of the identity component value corresponding to Type3.</typeparam>
     /// <typeparam name="Key4">The type of the identity component value corresponding to Type4.</typeparam>
     /// <typeparam name="Key5">The type of the identity component value corresponding to Type5.</typeparam>
-    public class Identity<Type1, Type2, Type3, Type4, Type5, Key1, Key2, Key3, Key4, Key5> : IIdentity<Type1, Type2, Type3, Type4, Type5>
+    public class Identity<Type1, Type2, Type3, Type4, Type5, Key1, Key2, Key3, Key4, Key5>
+        : IIdentity<Type1, Type2, Type3, Type4, Type5>, IIdentityValue<(Key1, Key2, Key3, Key4, Key5)>, IIdentityComponentValue<Key5>
     {
         /// <summary>
         /// Constructor.
@@ -469,8 +503,15 @@ namespace Biz.Morsink.Identity
             if (other == null)
                 return false;
             other = Provider.Translate(other);
-            var typed = other as Identity<Type1, Type2, Type3, Type4, Type5, Key1, Key2, Key3, Key4, Key5>;
-            var otherVal = typed != null ? typed.Value : Provider.GetConverter(typeof(Type4), true).Convert(other.Value).To<(Key1, Key2, Key3, Key4, Key5)>();
+            (Key1, Key2, Key3, Key4, Key5) otherVal;
+            var typed = other as Identity<Type1, Type2, Type3, Type4, Type5, Key1, Key2, Key3, Key4, Key5>; // Try same class: cheaper on performance
+            if (typed != null)
+                otherVal = typed.Value;
+            else
+            {
+                var ityped = other as IIdentityValue<(Key1, Key2, Key3, Key4, Key5)>; // Try typed interface to avoid conversion
+                otherVal = ityped != null ? ityped.Value : Provider.GetConverter(typeof(Type4), true).Convert(other.Value).To<(Key1, Key2, Key3, Key4, Key5)>();
+            }
             return Provider.GetUnderlyingEqualityComparer<(Key1, Key2, Key3, Key4, Key5)>().Equals(Value, otherVal);
         }
     }
