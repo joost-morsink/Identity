@@ -1,4 +1,29 @@
-# Identity Value implementations
+# Identity Values
+Identity values are values that implement the `IIdentity` interface and have the following aspects:
+* They uniquely identify an entity, which may or may not exist.
+* They can be hierarchical references for multiple entities at the same time.
+* They _belong_ to a provider, which is responsible for creating, translating and comparing these values.
+* If the `IIdentity<T>` interface is implemented the `IIdentity.ForType` should have a value equal to `typeof(T)`.
+* `Arity` equals `1`, iff `Value` equals `ComponentValue`.
+
+## Equality
+Two identity values are to be considered equal if they both reference the same type of entity and if their underlying values are equal.
+Configurable case sensitivity is an example of a single type having multiple valid ways of comparing two values.
+It is also the main driver for introducing equality comparers into providers.
+Equality should be implemented on the `IIdentity` implementations through the `Provider` reference.
+There is a theoretical possibility of breaking the equality laws of symmetry and transitivity:
+
+```csharp
+// could be broken because 'a' could have a different IIdentityProvider than 'b' does.
+a.Equals(b) == b.Equals(a)
+
+// could be broken because 'a' could have a different IIdentityProvider than 'b' does.
+!(a.Equals(b) && b.Equals(c)) || a.Equals(c);
+```
+
+It is strongly advised to store identity values in collections only if they all correspond to the same provider.
+
+## Identity Value implementations
 The `IIdentity` can be implemented freely, but a few default implementations are provided by the library:
 * `Identity<...>` models identity values with arity up to and including 5.
   All component values are generically typed, so these classes can only be used when the actual underlying type is known.

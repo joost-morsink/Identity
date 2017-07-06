@@ -6,6 +6,7 @@ using Biz.Morsink.DataConvert;
 using System.Reflection;
 using Ex = System.Linq.Expressions.Expression;
 using Biz.Morsink.DataConvert.Converters;
+using Biz.Morsink.Identity.Utils;
 
 namespace Biz.Morsink.Identity
 {
@@ -15,12 +16,28 @@ namespace Biz.Morsink.Identity
     /// </summary>
     public abstract class AbstractIdentityProvider : IIdentityProvider
     {
+        protected readonly RecursiveValueTupleEqualityComparers comparers;
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        protected AbstractIdentityProvider()
+        {
+            comparers = new RecursiveValueTupleEqualityComparers();
+        }
         /// <summary>
         /// This method should return the type of the underlying value for a certain entity type.
         /// </summary>
         /// <param name="forType">The entity type.</param>
         /// <returns>The type of the underlying identity values.</returns>
         public abstract Type GetUnderlyingType(Type forType);
+        /// <summary>
+        /// This method should return an IEqualityComparer&lt;T&gt; instance for a certain underlying type.
+        /// </summary>
+        /// <typeparam name="T">The type of the underlying type.</typeparam>
+        /// <returns>An equality comparer for the specified type.</returns>
+        public virtual IEqualityComparer<T> GetUnderlyingEqualityComparer<T>()
+            => comparers.Get<T>();
+
         /// <summary>
         /// Gets an IIdentityCreator instance for some type.
         /// </summary>

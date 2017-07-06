@@ -6,7 +6,7 @@ namespace Biz.Morsink.Identity
     /// <summary>
     /// Base interface for all identity values.
     /// </summary>
-    public interface IIdentity
+    public interface IIdentity : IEquatable<IIdentity>
     {
         /// <summary>
         /// Gets the identity value's identity provider.
@@ -37,7 +37,7 @@ namespace Biz.Morsink.Identity
     /// This interface describes identity values that refer to a certain type.
     /// </summary>
     /// <typeparam name="T">The type of object an instance is an identity value for.</typeparam>
-    public interface IIdentity<T> : IIdentity
+    public interface IIdentity<T> : IIdentity, IEquatable<IIdentity<T>>
     {
     }
     /// <summary>

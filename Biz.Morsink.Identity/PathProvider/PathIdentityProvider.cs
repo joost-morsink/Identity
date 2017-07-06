@@ -188,10 +188,13 @@ namespace Biz.Morsink.Identity.PathProvider
         /// </summary>
         public PathIdentityProvider(IEqualityComparer<string> equalityComparer = null)
         {
+            if (equalityComparer != null)
+                comparers.Set(equalityComparer);
             entries = new Dictionary<Type, Entry>();
             matchTree = new Lazy<PathMatchTree>(GetMatchTree);
             this.equalityComparer = equalityComparer ?? EqualityComparer<string>.Default;
         }
+
         /// <summary>
         /// Add an entity type entry into this providers registry.
         /// </summary>

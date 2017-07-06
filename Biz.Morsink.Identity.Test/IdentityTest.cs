@@ -33,9 +33,13 @@ namespace Biz.Morsink.Identity.Test
         public void Identity_Equality()
         {
             Assert.IsTrue(provider.Equals(person.Id, detail.Id.For<Person>()), "Intrinsic Person identity should be equal to the Person identity");
+            Assert.IsTrue(person.Id.Equals(detail.Id.For<Person>()), "Intrinsic Person identity should be equal to the Person identity");
             Assert.IsTrue(provider.Equals(detail.Id, provider.Create<Detail, (int, int)>((1, 2))), "Full identity should be equal tot the converted identity using generic method");
+            Assert.IsTrue(detail.Id.Equals(provider.Create<Detail, (int, int)>((1, 2))), "Full identity should be equal tot the converted identity using generic method");
             Assert.IsTrue(provider.Equals(detail.Id, provider.DetailId(1, 2)), "Full identity should be equal tot the converted identity using specific method");
+            Assert.IsTrue(detail.Id.Equals(provider.DetailId(1, 2)), "Full identity should be equal tot the converted identity using specific method");
             Assert.IsTrue(provider.Equals(provider.DId(null), provider.DId(null)), "Null identity values should be equal");
+            Assert.IsTrue(provider.DId(null).Equals(provider.DId(null)), "Null identity values should be equal");
             Assert.IsTrue(provider.Equals(null, null), "Null identities should be equal");
         }
         [TestMethod]

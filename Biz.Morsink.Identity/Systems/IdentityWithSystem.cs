@@ -67,6 +67,12 @@ namespace Biz.Morsink.Identity.Systems
         /// </summary>
         public int Arity => InnerIdentity.Arity;
 
+        public override int GetHashCode()
+            => InnerIdentity.GetHashCode();
+        public override bool Equals(object obj) => Equals(obj as IIdentity);
+        public virtual bool Equals(IIdentity other)
+            => InnerIdentity.Equals(other);
+
         IIdentity IIdentityContainer.Map(IIdentity id)
             => new IdentityWithSystem<IIdentity>(System, id);
         IIdentity<U> IIdentityContainer.Map<U>(IIdentity<U> id)
@@ -88,6 +94,13 @@ namespace Biz.Morsink.Identity.Systems
         public IdentityWithSystem(IIdentity<Sys> system, I innerIdentity) : base(system, innerIdentity)
         {
         }
+
+        public override int GetHashCode() => base.GetHashCode();
+        public override bool Equals(object obj) => Equals(obj as IIdentity<T>);
+        public override bool Equals(IIdentity other) => Equals(other as IIdentity<T>);
+
+        public bool Equals(IIdentity<T> other)
+            => InnerIdentity.Equals(other);
     }
 
 }

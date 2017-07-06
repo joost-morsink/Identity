@@ -1,11 +1,11 @@
-﻿using System;
+﻿using Biz.Morsink.DataConvert;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
 namespace Biz.Morsink.Identity
 {
-
     /// <summary>
     /// Reference implementation for 1-ary indentity values.
     /// </summary>
@@ -57,6 +57,20 @@ namespace Biz.Morsink.Identity
         /// The arity of unary identity values is always 1.
         /// </summary>
         public int Arity => 1;
+
+        public override int GetHashCode()
+            => ForType.GetHashCode() ^ Provider.GetUnderlyingEqualityComparer<Key1>().GetHashCode(Value);
+        public override bool Equals(object obj) => Equals(obj as IIdentity<Type1>);
+        public bool Equals(IIdentity other) => Equals(other as IIdentity<Type1>);
+        public bool Equals(IIdentity<Type1> other)
+        {
+            if (other == null)
+                return false;
+            other = Provider.Translate(other);
+            var typed = other as Identity<Type1, Key1>;
+            var otherVal = typed != null ? typed.Value : Provider.GetConverter(typeof(Type1), true).Convert(other.Value).To<Key1>();
+            return Provider.GetUnderlyingEqualityComparer<Key1>().Equals(Value, otherVal);
+        }
     }
     /// <summary>
     /// Reference implementation for 2-ary identity values.
@@ -137,6 +151,20 @@ namespace Biz.Morsink.Identity
         /// The arity of binary identity values is always 2.
         /// </summary>
         public int Arity => 2;
+
+        public override int GetHashCode()
+            => ForType.GetHashCode() ^ Provider.GetUnderlyingEqualityComparer<(Key1, Key2)>().GetHashCode(Value);
+        public override bool Equals(object obj) => Equals(obj as IIdentity<Type2>);
+        public bool Equals(IIdentity other) => Equals(other as IIdentity<Type2>);
+        public bool Equals(IIdentity<Type2> other)
+        {
+            if (other == null)
+                return false;
+            other = Provider.Translate(other);
+            var typed = other as Identity<Type1, Type2, Key1, Key2>;
+            var otherVal = typed != null ? typed.Value : Provider.GetConverter(typeof(Type2), true).Convert(other.Value).To<(Key1, Key2)>();
+            return Provider.GetUnderlyingEqualityComparer<(Key1, Key2)>().Equals(Value, otherVal);
+        }
     }
     /// <summary>
     /// Reference implementation for 3-ary identity values.
@@ -221,6 +249,21 @@ namespace Biz.Morsink.Identity
         /// The arity of ternary identity values is always 3.
         /// </summary>
         public int Arity => 3;
+
+        public override int GetHashCode()
+            => ForType.GetHashCode() ^ Provider.GetUnderlyingEqualityComparer<(Key1, Key2, Key3)>().GetHashCode(Value);
+        public override bool Equals(object obj) => Equals(obj as IIdentity<Type3>);
+        public bool Equals(IIdentity other) => Equals(other as IIdentity<Type3>);
+
+        public bool Equals(IIdentity<Type3> other)
+        {
+            if (other == null)
+                return false;
+            other = Provider.Translate(other);
+            var typed = other as Identity<Type1, Type2, Type3, Key1, Key2, Key3>;
+            var otherVal = typed != null ? typed.Value : Provider.GetConverter(typeof(Type3), true).Convert(other.Value).To<(Key1, Key2, Key3)>();
+            return Provider.GetUnderlyingEqualityComparer<(Key1, Key2, Key3)>().Equals(Value, otherVal);
+        }
     }
 
     /// <summary>
@@ -310,6 +353,21 @@ namespace Biz.Morsink.Identity
         /// The arity of 4-ary identity values is always 4.
         /// </summary>
         public int Arity => 4;
+
+        public override int GetHashCode()
+            => ForType.GetHashCode() ^ Provider.GetUnderlyingEqualityComparer<(Key1, Key2, Key3, Key4)>().GetHashCode(Value);
+        public override bool Equals(object obj) => Equals(obj as IIdentity<Type4>);
+        public bool Equals(IIdentity other) => Equals(other as IIdentity<Type4>);
+
+        public bool Equals(IIdentity<Type4> other)
+        {
+            if (other == null)
+                return false;
+            other = Provider.Translate(other);
+            var typed = other as Identity<Type1, Type2, Type3, Type4, Key1, Key2, Key3, Key4>;
+            var otherVal = typed != null ? typed.Value : Provider.GetConverter(typeof(Type4), true).Convert(other.Value).To<(Key1, Key2, Key3, Key4)>();
+            return Provider.GetUnderlyingEqualityComparer<(Key1, Key2, Key3, Key4)>().Equals(Value, otherVal);
+        }
     }
     /// <summary>
     /// Reference implementation for 5-ary identity values.
@@ -400,5 +458,20 @@ namespace Biz.Morsink.Identity
         /// The arity of 5-ary identity values is always 5.
         /// </summary>
         public int Arity => 5;
+
+        public override int GetHashCode()
+            => ForType.GetHashCode() ^ Provider.GetUnderlyingEqualityComparer<(Key1, Key2, Key3, Key4, Key5)>().GetHashCode(Value);
+        public override bool Equals(object obj) => Equals(obj as IIdentity<Type5>);
+        public bool Equals(IIdentity other) => Equals(other as IIdentity<Type5>);
+
+        public bool Equals(IIdentity<Type5> other)
+        {
+            if (other == null)
+                return false;
+            other = Provider.Translate(other);
+            var typed = other as Identity<Type1, Type2, Type3, Type4, Type5, Key1, Key2, Key3, Key4, Key5>;
+            var otherVal = typed != null ? typed.Value : Provider.GetConverter(typeof(Type4), true).Convert(other.Value).To<(Key1, Key2, Key3, Key4, Key5)>();
+            return Provider.GetUnderlyingEqualityComparer<(Key1, Key2, Key3, Key4, Key5)>().Equals(Value, otherVal);
+        }
     }
 }
