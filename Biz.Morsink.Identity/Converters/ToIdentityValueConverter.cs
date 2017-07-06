@@ -4,6 +4,7 @@ using System.Reflection;
 using Biz.Morsink.DataConvert;
 using Ex = System.Linq.Expressions.Expression;
 using Et = System.Linq.Expressions.ExpressionType;
+using System.Linq.Expressions;
 
 namespace Biz.Morsink.Identity.Converters
 {
@@ -26,6 +27,8 @@ namespace Biz.Morsink.Identity.Converters
         /// </summary>
         public IIdentityProvider Provider { get; }
 
+        public bool SupportsLambda => true;
+
         private Type selectIdentityInterface(Type type)
         {
             if (type.GetTypeInfo().GenericTypeArguments.Length == 1
@@ -40,7 +43,7 @@ namespace Biz.Morsink.Identity.Converters
             return t != null && Provider.Supports(t);
         }
 
-        public Delegate Create(Type from, Type to)
+        public LambdaExpression CreateLambda(Type from, Type to)
         {
             var input = Ex.Parameter(from, "input");
             var entType = selectIdentityInterface(to);
@@ -57,12 +60,15 @@ namespace Biz.Morsink.Identity.Converters
                     NoResult(to),
                     Result(to, res)));
             var lambda = Ex.Lambda(block, input);
-            return lambda.Compile();
+            return lambda;
         }
         static Ex NoResult(Type t)
             => Ex.Default(typeof(ConversionResult<>).MakeGenericType(t));
         static Ex Result(Type t, Ex expr)
             => Ex.New(typeof(ConversionResult<>).MakeGenericType(t).GetTypeInfo().DeclaredConstructors
                 .Single(ci => ci.GetParameters().Length == 1 && ci.GetParameters()[0].ParameterType == t), expr);
+
+        public Delegate Create(Type from, Type to)
+            => CreateLambda(from, to).Compile();
     }
 }

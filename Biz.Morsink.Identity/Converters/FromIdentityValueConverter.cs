@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq.Expressions;
 using System.Reflection;
 using Biz.Morsink.DataConvert;
 using Ex = System.Linq.Expressions.Expression;
@@ -20,10 +21,12 @@ namespace Biz.Morsink.Identity.Converters
 
         public IDataConverter Ref { get; set; }
 
+        public bool SupportsLambda => true;
+
         public bool CanConvert(Type from, Type to)
             => typeof(IIdentity).GetTypeInfo().IsAssignableFrom(from.GetTypeInfo()); 
 
-        public Delegate Create(Type from, Type to)
+        public LambdaExpression CreateLambda(Type from, Type to)
         {
             var input = Ex.Parameter(from, "type");
             
@@ -48,7 +51,10 @@ namespace Biz.Morsink.Identity.Converters
                         Ex.Constant(Ref), Ex.Property(input, prop))));
 
             var lambda = Ex.Lambda(block, input);
-            return lambda.Compile();
+            return lambda;
         }
+
+        public Delegate Create(Type from, Type to)
+            => CreateLambda(from, to).Compile();
     }
 }

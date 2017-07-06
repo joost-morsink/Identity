@@ -28,9 +28,9 @@
     <VersionSuffix>a000debug</VersionSuffix>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Biz.Morsink.DataConvert" Version="0.2.0-beta001" />
+    <PackageReference Include="Biz.Morsink.DataConvert" Version="0.2.0" />
     <PackageReference Include="System.Collections.Immutable" Version="1.3.1" />
-    <PackageReference Include="System.ValueTuple" Version="4.3.0" />
+    <PackageReference Include="System.ValueTuple" Version="4.3.1" />
   </ItemGroup>
 
 </Project>
