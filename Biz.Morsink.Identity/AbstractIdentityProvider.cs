@@ -267,7 +267,8 @@ namespace Biz.Morsink.Identity
                 new ToNullableConverter(),
                 TupleConverter.Instance,
                 EnumerableToTupleConverter.Instance,
-                TupleToArrayConverter.Instance
+                TupleToArrayConverter.Instance,
+                ToObjectConverter.Instance
             };
             /// <summary>
             /// Contains fallback converters (FromStringRepresentation, Dynamic)
