@@ -93,9 +93,9 @@ namespace Biz.Morsink.Identity
         public K ComponentValue { get; }
         object IIdentity.ComponentValue => ComponentValue;
         /// <summary>
-        /// A FreeIdentity's provider is always null.
+        /// A FreeIdentity's provider is always the 'Instance' property of the FreeIdentityProvider.
         /// </summary>
-        public IIdentityProvider Provider => null;
+        public IIdentityProvider Provider => FreeIdentityProvider.Instance;
         /// <summary>
         /// The entity type this identity value refers to.
         /// </summary>
