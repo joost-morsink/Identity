@@ -138,7 +138,7 @@ namespace Biz.Morsink.Identity
         {
             if (other == null) // An actual identity value never equals a null.
                 return false;
-            else if (other.Provider != null) // If the other identity value has a provider, its context takes precedence over defaults for FreeIdentity.
+            else if (other.Provider != null && !(other.Provider is FreeIdentityProvider)) // If the other identity value has a provider, its context takes precedence over defaults for FreeIdentity.
                 return other.Equals(this);
             else if (Arity == 1) // If the arity is exactly one, it suffices to compare ComponentValues.
             {
