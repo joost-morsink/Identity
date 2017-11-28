@@ -20,7 +20,7 @@
     <Configurations>Debug;Release;Prerelease</Configurations>
   </PropertyGroup>
   <PropertyGroup Condition="$(Configuration) == 'Prerelease'">
-    <VersionSuffix>beta003</VersionSuffix>
+    <VersionSuffix>beta001</VersionSuffix>
   </PropertyGroup>
   <PropertyGroup Condition="$(Configuration) == 'Release'">
 
