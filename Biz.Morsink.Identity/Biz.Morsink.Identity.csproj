@@ -4,7 +4,7 @@
     <TargetFrameworks>netstandard1.3;netstandard1.6;netstandard2.0;net45</TargetFrameworks>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
     <Title>Identity</Title>
-    <VersionPrefix>0.1.0</VersionPrefix>
+    <VersionPrefix>0.1.1</VersionPrefix>
     <Authors>Joost W. Morsink</Authors>
     <Company>Morsink Software</Company>
     <PackageId>Biz.Morsink.Identity</PackageId>
@@ -20,7 +20,7 @@
     <Configurations>Debug;Release;Prerelease</Configurations>
   </PropertyGroup>
   <PropertyGroup Condition="$(Configuration) == 'Prerelease'">
-    <VersionSuffix>beta003</VersionSuffix>
+    <VersionSuffix>beta001</VersionSuffix>
   </PropertyGroup>
   <PropertyGroup Condition="$(Configuration) == 'Release'">
 
