@@ -510,7 +510,7 @@ namespace Biz.Morsink.Identity
             else
             {
                 var ityped = other as IIdentityValue<(Key1, Key2, Key3, Key4, Key5)>; // Try typed interface to avoid conversion
-                otherVal = ityped != null ? ityped.Value : Provider.GetConverter(typeof(Type4), true).Convert(other.Value).To<(Key1, Key2, Key3, Key4, Key5)>();
+                otherVal = ityped != null ? ityped.Value : Provider.GetConverter(typeof(Type5), true).Convert(other.Value).To<(Key1, Key2, Key3, Key4, Key5)>();
             }
             return Provider.GetUnderlyingEqualityComparer<(Key1, Key2, Key3, Key4, Key5)>().Equals(Value, otherVal);
         }
